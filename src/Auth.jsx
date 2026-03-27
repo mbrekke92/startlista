@@ -40,11 +40,7 @@ export default function Auth() {
     setLoading(true);
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { first_name: firstName.trim(), last_name: lastName.trim(), city: city.trim() } } });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
-    if (data.user) {
-      await supabase.from("profiles").insert({
-        id: data.user.id, first_name: firstName.trim(), last_name: lastName.trim(), city: city.trim(),
-      });
-    }
+
     setLoading(false);
     if (!data.session) setMode("confirm");
   };
