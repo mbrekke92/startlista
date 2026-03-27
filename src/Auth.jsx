@@ -38,7 +38,7 @@ export default function Auth() {
     if (!acceptPrivacy) { setError("Du må godta personvernerklæringen"); return; }
     if (!firstName.trim() || !lastName.trim() || !city.trim()) { setError("Alle felt må fylles ut"); return; }
     setLoading(true);
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { first_name: firstName.trim(), last_name: lastName.trim(), city: city.trim() } } });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
     if (data.user) {
       await supabase.from("profiles").insert({
