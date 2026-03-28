@@ -52,6 +52,7 @@ export default function Main({ session }) {
   const [settingsMessage, setSettingsMessage] = useState("");
   const [editingGoalEntryId, setEditingGoalEntryId] = useState(null);
   const [editGoalValue, setEditGoalValue] = useState("");
+  const [fadeKey, setFadeKey] = useState(0);
 
   const userId = session.user.id;
 
@@ -77,7 +78,7 @@ export default function Main({ session }) {
   if (loading || !profile) {
     return (
       <div style={{ minHeight: "100vh", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 600, color: "#2D5A3D" }}>startlista</span>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#2D5A3D" }}>startlista</span>
       </div>
     );
   }
@@ -86,6 +87,8 @@ export default function Main({ session }) {
   const myEntries = entries.filter((e) => e.user_id === userId);
   const followingIds = follows;
   const today = new Date().toISOString().split("T")[0];
+
+  const navigate = (fn) => { setFadeKey((k) => k + 1); fn(); };
 
   const toggleFollow = async (targetId) => {
     if (followingIds.includes(targetId)) {
@@ -162,10 +165,10 @@ export default function Main({ session }) {
 
   const handleLogout = async () => { await supabase.auth.signOut(); };
 
-  const openProfile = (p) => { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); };
-  const openRace = (raceId) => { setSelectedRace(races.find((r) => r.id === raceId)); setView("race"); setGlobalSearch(""); };
-  const goRaces = () => { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); };
-  const goFeed = () => { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); };
+  const openProfile = (p) => navigate(() => { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); });
+  const openRace = (raceId) => navigate(() => { setSelectedRace(races.find((r) => r.id === raceId)); setView("race"); setGlobalSearch(""); });
+  const goRaces = () => navigate(() => { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); });
+  const goFeed = () => navigate(() => { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); });
 
   const raceLocation = (race) => `${race.location}${race.country && race.country !== "Norge" ? `, ${race.country}` : ""}`;
 
@@ -178,14 +181,15 @@ export default function Main({ session }) {
     return races.filter((r) => fuzzyMatch(name, r.name) && !myEntries.some((e) => e.race_id === r.id));
   };
 
-  const inputStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "10px 12px", border: "1px solid #E2E0D8", borderRadius: 8, background: "#fff", color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none" };
-  const labelStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#7A7A6E", marginBottom: 4, display: "block" };
-  const sectionTitle = { fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "1.5px", color: "#9B9B8E", marginBottom: 16 };
+  const inputStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "12px 14px", border: "1px solid #E2E0D8", borderRadius: 10, background: "#fff", color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s ease" };
+  const labelStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", marginBottom: 5, display: "block" };
+  const sectionTitle = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: "#C4C3BB", marginBottom: 16 };
   const pillBtn = (active, green) => ({
-    fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, padding: "6px 16px", borderRadius: 20,
+    fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, padding: "7px 18px", borderRadius: 20,
     border: active ? "1px solid #E2E0D8" : `1px solid ${green ? "#2D5A3D" : "#E2E0D8"}`,
     background: active ? "transparent" : green ? "#2D5A3D" : "transparent",
-    color: active ? "#7A7A6E" : green ? "#fff" : "#7A7A6E", cursor: "pointer", whiteSpace: "nowrap",
+    color: active ? "#9B9B8E" : green ? "#fff" : "#9B9B8E", cursor: "pointer", whiteSpace: "nowrap",
+    transition: "all 0.2s ease",
   });
 
   const Avatar = ({ p, size = 36, fontSize = 13 }) => (
@@ -207,66 +211,89 @@ export default function Main({ session }) {
         }}>{getInitials(p.first_name, p.last_name)}</div>
       ))}
       {participants.length > 3 && (
-        <span style={{ fontSize: 11, fontWeight: 500, color: "#9B9B8E", marginLeft: 4 }}>+{participants.length - 3}</span>
+        <span style={{ fontSize: 11, fontWeight: 500, color: "#C4C3BB", marginLeft: 4 }}>+{participants.length - 3}</span>
       )}
+    </div>
+  );
+
+  const RaceRow = ({ race, onClick, rightContent }) => (
+    <div onClick={onClick} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "background 0.15s ease" }}>
+      <div>
+        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div>
+        <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+      </div>
+      {rightContent || <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>}
     </div>
   );
 
   return (
     <div style={{ minHeight: "100vh", background: "#FAFAF7", fontFamily: "'DM Sans', sans-serif", color: "#1A1A1A" }}>
 
-      <header style={{ borderBottom: "1px solid #E2E0D8", background: "#FAFAF7", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* Frosted glass header */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 100,
+        background: "rgba(250,250,247,0.85)",
+        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(226,224,216,0.6)",
+      }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div onClick={goRaces} style={{ cursor: "pointer" }}>
-            <span style={{ fontWeight: 600, fontSize: 20, letterSpacing: "-0.5px", color: "#2D5A3D" }}>startlista</span>
+            <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.5px", color: "#2D5A3D" }}>startlista</span>
           </div>
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 18 }}>
             {[
               { label: "Løp", v: "races", action: goRaces },
               { label: "Oversikt", v: "feed", action: goFeed },
               { label: "Min profil", v: "myprofile", action: () => openProfile(profile) },
-            ].map((tab) => (
-              <span key={tab.v} onClick={tab.action} style={{
-                fontSize: 14, cursor: "pointer",
-                color: (view === tab.v || (tab.v === "myprofile" && view === "profile" && selectedProfile?.id === userId)) ? "#2D5A3D" : "#7A7A6E",
-                fontWeight: (view === tab.v || (tab.v === "myprofile" && view === "profile" && selectedProfile?.id === userId)) ? 600 : 400,
-              }}>{tab.label}</span>
-            ))}
+            ].map((tab) => {
+              const isActive = view === tab.v || (tab.v === "myprofile" && view === "profile" && selectedProfile?.id === userId);
+              return (
+                <span key={tab.v} onClick={tab.action} style={{
+                  fontSize: 13, cursor: "pointer", transition: "color 0.2s ease",
+                  color: isActive ? "#2D5A3D" : "#C4C3BB",
+                  fontWeight: isActive ? 600 : 400,
+                }}>{tab.label}</span>
+              );
+            })}
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px" }}>
+      <main key={fadeKey} style={{
+        maxWidth: 640, margin: "0 auto", padding: "0 20px",
+        animation: "fadeIn 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)",
+      }}>
+        <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
         {/* Universal search */}
         {(view === "feed" || view === "races") && (
-          <div style={{ padding: "20px 0 0", position: "relative" }}>
+          <div style={{ padding: "24px 0 0", position: "relative" }}>
             <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} style={inputStyle} />
             {globalSearch.length > 0 && (() => {
               const q = globalSearch.toLowerCase();
               const matchedUsers = profiles.filter((p) => fullName(p).toLowerCase().includes(q) || p.city.toLowerCase().includes(q));
               const matchedRaces = races.filter((r) => r.name.toLowerCase().includes(q) || r.location.toLowerCase().includes(q));
-              if (matchedUsers.length === 0 && matchedRaces.length === 0) return <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 8, padding: 12, fontSize: 13, color: "#9B9B8E", zIndex: 50, marginTop: 4 }}>Ingen treff</div>;
+              if (matchedUsers.length === 0 && matchedRaces.length === 0) return <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, padding: 14, fontSize: 13, color: "#9B9B8E", zIndex: 50, marginTop: 4, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>Ingen treff</div>;
               return (
-                <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 8, zIndex: 50, marginTop: 4, maxHeight: 300, overflowY: "auto" }}>
+                <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, zIndex: 50, marginTop: 4, maxHeight: 300, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
                   {matchedUsers.length > 0 && (
                     <>
-                      <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", color: "#9B9B8E" }}>Løpere</div>
+                      <div style={{ padding: "10px 14px 6px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#C4C3BB" }}>Løpere</div>
                       {matchedUsers.map((p) => (
-                        <div key={p.id} onClick={() => { openProfile(p); setGlobalSearch(""); }} style={{ padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid #F0EFE9" }}>
+                        <div key={p.id} onClick={() => { openProfile(p); setGlobalSearch(""); }} style={{ padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid #F0EFE9", transition: "background 0.15s ease" }}>
                           <Avatar p={p} size={28} fontSize={10} />
-                          <div><div style={{ fontWeight: 600, fontSize: 14 }}>{fullName(p)}</div><div style={{ fontSize: 11, color: "#7A7A6E" }}>{p.city}</div></div>
+                          <div><div style={{ fontWeight: 600, fontSize: 14 }}>{fullName(p)}</div><div style={{ fontSize: 11, color: "#9B9B8E" }}>{p.city}</div></div>
                         </div>
                       ))}
                     </>
                   )}
                   {matchedRaces.length > 0 && (
                     <>
-                      <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", color: "#9B9B8E" }}>Løp</div>
+                      <div style={{ padding: "10px 14px 6px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#C4C3BB" }}>Løp</div>
                       {matchedRaces.map((race) => (
-                        <div key={race.id} onClick={() => { openRace(race.id); setGlobalSearch(""); }} style={{ padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid #F0EFE9" }}>
+                        <div key={race.id} onClick={() => { openRace(race.id); setGlobalSearch(""); }} style={{ padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid #F0EFE9" }}>
                           <div style={{ fontWeight: 600, fontSize: 14 }}>{race.name}</div>
-                          <div style={{ fontSize: 11, color: "#7A7A6E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                          <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
                         </div>
                       ))}
                     </>
@@ -277,44 +304,40 @@ export default function Main({ session }) {
           </div>
         )}
 
-        {/* LØP - MAIN LANDING PAGE */}
+        {/* LØP */}
         {view === "races" && (
-          <div style={{ padding: "20px 0 40px" }}>
-            <div style={{ textAlign: "center", padding: "20px 0 28px" }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#2D5A3D", marginBottom: 6 }}>Velkommen til startlista</div>
-              <div style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.5 }}>Din og dine løpevenners terminliste. Se hvem som skal løpe hva, og del dine egne planer.</div>
+          <div style={{ padding: "24px 0 60px" }}>
+            <div style={{ textAlign: "center", padding: "32px 0 36px" }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.8px", marginBottom: 8 }}>Velkommen til startlista</div>
+              <div style={{ fontSize: 15, color: "#9B9B8E", lineHeight: 1.5 }}>Din og dine løpevenners terminliste.</div>
             </div>
             <h2 style={sectionTitle}>Kommende løp</h2>
             <div>
               {races.filter((r) => r.date >= today).map((race) => {
                 const ps = entries.filter((e) => e.race_id === race.id).map((e) => profiles.find((p) => p.id === e.user_id)).filter(Boolean);
                 return (
-                  <div key={race.id} onClick={() => openRace(race.id)} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div>
-                      <div style={{ fontSize: 12, color: "#7A7A6E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
-                    </div>
+                  <RaceRow key={race.id} race={race} onClick={() => openRace(race.id)} rightContent={
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       {ps.length > 0 && <AvatarStack participants={ps} />}
-                      <span style={{ color: "#C4C3BB", fontSize: 16 }}>›</span>
+                      <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
                     </div>
-                  </div>
+                  } />
                 );
               })}
             </div>
-            <div style={{ padding: "36px 0 0" }}>
+            <div style={{ padding: "48px 0 0" }}>
               <h2 style={sectionTitle}>Løpere</h2>
               <div>
                 {profiles.filter((p) => p.id !== userId).map((p) => (
-                  <div key={p.id} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div key={p.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div onClick={() => openProfile(p)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
                       <Avatar p={p} />
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 15 }}>{fullName(p)}</div>
-                        <div style={{ fontSize: 12, color: "#7A7A6E" }}>{p.city} · {entries.filter((e) => e.user_id === p.id).length} planlagte løp</div>
+                        <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.2px" }}>{fullName(p)}</div>
+                        <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city} · {entries.filter((e) => e.user_id === p.id).length} planlagte løp</div>
                       </div>
                     </div>
-                    <span style={{ color: "#C4C3BB", fontSize: 16, cursor: "pointer" }} onClick={() => openProfile(p)}>›</span>
+                    <span style={{ color: "#D4D3CC", fontSize: 16, cursor: "pointer" }} onClick={() => openProfile(p)}>›</span>
                   </div>
                 ))}
               </div>
@@ -324,7 +347,7 @@ export default function Main({ session }) {
 
         {/* OVERSIKT */}
         {view === "feed" && (
-          <div style={{ padding: "20px 0 40px" }}>
+          <div style={{ padding: "24px 0 60px" }}>
             {(() => {
               const raceGroups = {};
               entries.forEach((entry) => {
@@ -339,26 +362,28 @@ export default function Main({ session }) {
 
               if (grouped.length === 0) {
                 return (
-                  <div style={{ textAlign: "center", padding: "40px 0" }}>
-                    <div style={{ fontSize: 14, color: "#9B9B8E", lineHeight: 1.6 }}>Følg løpere for å se deres planer her, eller legg til egne løp fra Min profil.</div>
+                  <div style={{ textAlign: "center", padding: "60px 0" }}>
+                    <div style={{ fontSize: 15, color: "#C4C3BB", lineHeight: 1.6 }}>Følg løpere for å se deres planer her,<br />eller legg til egne løp fra Min profil.</div>
                   </div>
                 );
               }
 
               return (
                 <>
-                  <h2 style={sectionTitle}>Oversikt</h2>
+                  <div style={{ padding: "8px 0 0" }}>
+                    <h2 style={sectionTitle}>Oversikt</h2>
+                  </div>
                   <div>
                     {grouped.map((group) => (
                       <div key={group.race.id} style={{ borderBottom: "1px solid #EDECE6" }}>
-                        <div onClick={() => openRace(group.race.id)} style={{ padding: "14px 0", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div onClick={() => openRace(group.race.id)} style={{ padding: "16px 0", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{group.race.name}</div>
+                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{group.race.name}</div>
                             <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(group.race)} · {group.race.distance} · {formatDate(group.race.date)}</div>
                           </div>
-                          <span style={{ color: "#C4C3BB", fontSize: 16 }}>›</span>
+                          <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
                         </div>
-                        <div style={{ paddingBottom: 10 }}>
+                        <div style={{ paddingBottom: 12 }}>
                           {group.runners.map((r) => (
                             <div key={r.profile.id} style={{ padding: "5px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <span onClick={() => openProfile(r.profile)} style={{ fontSize: 13, color: "#7A7A6E", cursor: "pointer" }}>{fullName(r.profile)}</span>
@@ -377,53 +402,53 @@ export default function Main({ session }) {
 
         {/* PROFILE */}
         {view === "profile" && selectedProfile && (
-          <div style={{ padding: "32px 0 40px" }}>
-            <div onClick={goFeed} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 24 }}>← Tilbake</div>
+          <div style={{ padding: "36px 0 60px" }}>
+            <div onClick={goFeed} style={{ fontSize: 13, color: "#C4C3BB", cursor: "pointer", marginBottom: 28 }}>← Tilbake</div>
 
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-                <Avatar p={selectedProfile} size={44} fontSize={16} />
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <Avatar p={selectedProfile} size={48} fontSize={17} />
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>{fullName(selectedProfile)}</div>
-                  <div style={{ fontSize: 13, color: "#9B9B8E" }}>{selectedProfile.city}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px" }}>{fullName(selectedProfile)}</div>
+                  <div style={{ fontSize: 13, color: "#9B9B8E", marginTop: 1 }}>{selectedProfile.city}</div>
                 </div>
               </div>
               {selectedProfile.id !== userId && !followingIds.includes(selectedProfile.id) && (
-                <button onClick={() => toggleFollow(selectedProfile.id)} style={{ ...pillBtn(false, true), fontSize: 13, padding: "8px 20px" }}>Følg</button>
+                <button onClick={() => toggleFollow(selectedProfile.id)} style={{ ...pillBtn(false, true), fontSize: 13, padding: "9px 24px" }}>Følg</button>
               )}
               {selectedProfile.id !== userId && followingIds.includes(selectedProfile.id) && (
-                <span style={{ fontSize: 12, color: "#9B9B8E" }}>Følger</span>
+                <span style={{ fontSize: 12, color: "#C4C3BB" }}>Følger</span>
               )}
               {selectedProfile.id === userId && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <button onClick={() => { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 500, padding: "8px 20px", borderRadius: 20, border: "1px solid #2D5A3D", background: "#2D5A3D", color: "#fff", cursor: "pointer" }}>+ Legg til løp</button>
-                  <span onClick={() => { navigator.clipboard.writeText(`https://startlista.no/${fullName(profile).toLowerCase().replace(/\s+/g, "-")}`); alert("Lenke kopiert!"); }} style={{ fontSize: 12, color: "#9B9B8E", cursor: "pointer", textDecoration: "underline" }}>Del profil</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <button onClick={() => { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)", transition: "all 0.2s ease" }}>+ Legg til løp</button>
+                  <span onClick={() => { navigator.clipboard.writeText(`https://startlista.no/${fullName(profile).toLowerCase().replace(/\s+/g, "-")}`); alert("Lenke kopiert!"); }} style={{ fontSize: 12, color: "#C4C3BB", cursor: "pointer", textDecoration: "underline" }}>Del profil</span>
                 </div>
               )}
             </div>
 
             {/* Add race panel */}
             {showAddRace && selectedProfile.id === userId && (
-              <div style={{ background: "#fff", border: "1px solid #E2E0D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+              <div style={{ background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
                 {!manualMode && !selectedExisting && (
                   <>
                     <input type="text" placeholder="Søk etter løp..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={inputStyle} autoFocus />
                     {searchQuery.length > 0 && (
                       <div style={{ marginTop: 8 }}>
-                        {filteredRaces.length === 0 ? <div style={{ fontSize: 13, color: "#9B9B8E", padding: "8px 0" }}>Ingen treff</div> : (
+                        {filteredRaces.length === 0 ? <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen treff</div> : (
                           filteredRaces.map((race) => {
                             const already = myEntries.some((e) => e.race_id === race.id);
                             return (
-                              <div key={race.id} onClick={() => !already && setSelectedExisting(race)} style={{ padding: "10px 0", borderBottom: "1px solid #F0EFE9", cursor: already ? "default" : "pointer", opacity: already ? 0.4 : 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: 14 }}>{race.name} {already && <span style={{ fontWeight: 400, fontSize: 11, color: "#9B9B8E" }}>(allerede lagt til)</span>}</div>
-                                <div style={{ fontSize: 11, color: "#7A7A6E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                              <div key={race.id} onClick={() => !already && setSelectedExisting(race)} style={{ padding: "12px 0", borderBottom: "1px solid #F0EFE9", cursor: already ? "default" : "pointer", opacity: already ? 0.35 : 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: 14 }}>{race.name} {already && <span style={{ fontWeight: 400, fontSize: 11, color: "#C4C3BB" }}>(allerede lagt til)</span>}</div>
+                                <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
                               </div>
                             );
                           })
                         )}
                       </div>
                     )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                       <button onClick={() => setManualMode(true)} style={pillBtn(false, false)}>Finner ikke løpet? Legg til manuelt</button>
                       <button onClick={() => { setShowAddRace(false); setSearchQuery(""); }} style={pillBtn(false, false)}>Avbryt</button>
                     </div>
@@ -432,25 +457,25 @@ export default function Main({ session }) {
                 {selectedExisting && (
                   <>
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{selectedExisting.name}</div>
-                    <div style={{ fontSize: 12, color: "#7A7A6E", marginBottom: 12 }}>{raceLocation(selectedExisting)} · {selectedExisting.distance} · {formatDate(selectedExisting.date)}</div>
+                    <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 14 }}>{raceLocation(selectedExisting)} · {selectedExisting.distance} · {formatDate(selectedExisting.date)}</div>
                     <label style={labelStyle}>Målsetning (valgfritt)</label>
                     <input type="text" placeholder="F.eks. Sub 3:30" value={goalForExisting} onChange={(e) => setGoalForExisting(e.target.value)} style={inputStyle} />
-                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                      <button onClick={addExistingRace} style={{ ...pillBtn(false, true), fontSize: 13, padding: "8px 20px" }}>Legg til</button>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      <button onClick={addExistingRace} style={{ ...pillBtn(false, true), fontSize: 13, padding: "9px 24px" }}>Legg til</button>
                       <button onClick={() => { setSelectedExisting(null); setGoalForExisting(""); }} style={pillBtn(false, false)}>Tilbake</button>
                     </div>
                   </>
                 )}
                 {manualMode && (
                   <>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Legg til nytt løp</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 18 }}>Legg til nytt løp</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                       <div>
                         <label style={labelStyle}>Løpsnavn *</label>
                         <input type="text" placeholder="F.eks. Valencia Marathon" value={newRace.name} onChange={(e) => setNewRace({ ...newRace, name: e.target.value })} style={inputStyle} />
                         {getSuggestions(newRace.name).length > 0 && (
-                          <div style={{ background: "#FFFBEB", border: "1px solid #E8DFB0", borderRadius: 8, padding: "10px 12px", marginTop: 6 }}>
-                            <div style={{ fontSize: 12, color: "#7A7A6E", marginBottom: 6 }}>Mente du?</div>
+                          <div style={{ background: "#FFFBEB", border: "1px solid #E8DFB0", borderRadius: 10, padding: "12px 14px", marginTop: 8 }}>
+                            <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 6 }}>Mente du?</div>
                             {getSuggestions(newRace.name).map((r) => (
                               <div key={r.id} onClick={() => { setManualMode(false); setSelectedExisting(r); setNewRace({ name: "", location: "", date: "", distance: "", country: "", goal: "" }); }} style={{ padding: "6px 0", cursor: "pointer", fontSize: 14 }}>
                                 <span style={{ fontWeight: 600 }}>{r.name}</span>
@@ -460,20 +485,20 @@ export default function Main({ session }) {
                           </div>
                         )}
                       </div>
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Sted *</label><input type="text" placeholder="By" value={newRace.location} onChange={(e) => setNewRace({ ...newRace, location: e.target.value })} style={inputStyle} /></div>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Land</label><input type="text" placeholder="Land" value={newRace.country} onChange={(e) => setNewRace({ ...newRace, country: e.target.value })} style={inputStyle} /></div>
                       </div>
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Dato *</label><input type="date" value={newRace.date} onChange={(e) => setNewRace({ ...newRace, date: e.target.value })} style={inputStyle} /></div>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Distanse *</label><input type="text" placeholder="F.eks. 42.2 km" value={newRace.distance} onChange={(e) => setNewRace({ ...newRace, distance: e.target.value })} style={inputStyle} /></div>
                       </div>
                       <div><label style={labelStyle}>Målsetning (valgfritt)</label><input type="text" placeholder="F.eks. Sub 3:30" value={newRace.goal} onChange={(e) => setNewRace({ ...newRace, goal: e.target.value })} style={inputStyle} /></div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                    <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
                       <button onClick={addManualRace} disabled={!newRace.name || !newRace.location || !newRace.date || !newRace.distance} style={{
-                        ...pillBtn(false, true), fontSize: 13, padding: "8px 20px",
-                        opacity: (!newRace.name || !newRace.location || !newRace.date || !newRace.distance) ? 0.4 : 1,
+                        ...pillBtn(false, true), fontSize: 13, padding: "9px 24px",
+                        opacity: (!newRace.name || !newRace.location || !newRace.date || !newRace.distance) ? 0.35 : 1,
                       }}>Opprett og legg til</button>
                       <button onClick={() => { setManualMode(false); setNewRace({ name: "", location: "", date: "", distance: "", country: "", goal: "" }); }} style={pillBtn(false, false)}>Tilbake</button>
                     </div>
@@ -486,7 +511,7 @@ export default function Main({ session }) {
             <div>
               <h2 style={sectionTitle}>Planlagte løp</h2>
               {entries.filter((e) => e.user_id === selectedProfile.id && races.find((r) => r.id === e.race_id)?.date >= today).length === 0 ? (
-                <div style={{ fontSize: 13, color: "#9B9B8E" }}>Ingen planlagte løp ennå</div>
+                <div style={{ fontSize: 13, color: "#C4C3BB" }}>Ingen planlagte løp ennå</div>
               ) : (
                 <div>
                   {[...entries.filter((e) => e.user_id === selectedProfile.id)].filter((e) => {
@@ -501,31 +526,31 @@ export default function Main({ session }) {
                     if (!race) return null;
                     const isMe = selectedProfile.id === userId;
                     return (
-                      <div key={entry.id} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6" }}>
+                      <div key={entry.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div onClick={() => openRace(race.id)} style={{ cursor: "pointer" }}>
-                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div>
-                            <div style={{ fontSize: 12, color: "#7A7A6E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div>
+                            <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {editingGoalEntryId !== entry.id && entry.goal && (
                               <span onClick={() => isMe && (setEditingGoalEntryId(entry.id), setEditGoalValue(entry.goal))} style={{ fontSize: 12, fontWeight: 500, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 10px", borderRadius: 12, cursor: isMe ? "pointer" : "default" }}>{entry.goal}</span>
                             )}
                             {editingGoalEntryId !== entry.id && !entry.goal && isMe && (
-                              <span onClick={() => { setEditingGoalEntryId(entry.id); setEditGoalValue(""); }} style={{ fontSize: 11, color: "#C4C3BB", cursor: "pointer" }}>+ mål</span>
+                              <span onClick={() => { setEditingGoalEntryId(entry.id); setEditGoalValue(""); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>+ mål</span>
                             )}
                           </div>
                         </div>
                         {editingGoalEntryId === entry.id && isMe && (
-                          <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
-                            <input type="text" placeholder="Målsetning (valgfritt)" value={editGoalValue} onChange={(e) => setEditGoalValue(e.target.value)} style={{ ...inputStyle, flex: 1, padding: "6px 10px", fontSize: 13 }} autoFocus />
-                            <button onClick={() => updateGoal(entry.id, editGoalValue)} style={{ ...pillBtn(false, true), padding: "4px 12px", fontSize: 11 }}>Lagre</button>
-                            <button onClick={() => setEditingGoalEntryId(null)} style={{ ...pillBtn(false, false), padding: "4px 12px", fontSize: 11 }}>Avbryt</button>
+                          <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+                            <input type="text" placeholder="Målsetning (valgfritt)" value={editGoalValue} onChange={(e) => setEditGoalValue(e.target.value)} style={{ ...inputStyle, flex: 1, padding: "8px 12px", fontSize: 13 }} autoFocus />
+                            <button onClick={() => updateGoal(entry.id, editGoalValue)} style={{ ...pillBtn(false, true), padding: "5px 14px", fontSize: 11 }}>Lagre</button>
+                            <button onClick={() => setEditingGoalEntryId(null)} style={{ ...pillBtn(false, false), padding: "5px 14px", fontSize: 11 }}>Avbryt</button>
                           </div>
                         )}
                         {isMe && editingGoalEntryId !== entry.id && (
-                          <div style={{ marginTop: 4 }}>
-                            <span onClick={() => removeEntry(race.id)} style={{ fontSize: 11, color: "#C4C3BB", cursor: "pointer" }}>Fjern fra listen</span>
+                          <div style={{ marginTop: 6 }}>
+                            <span onClick={() => removeEntry(race.id)} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>Fjern fra listen</span>
                           </div>
                         )}
                       </div>
@@ -535,12 +560,12 @@ export default function Main({ session }) {
               )}
             </div>
 
-            {/* Completed races */}
+            {/* Completed */}
             {(() => {
               const completed = entries.filter((e) => e.user_id === selectedProfile.id && races.find((r) => r.id === e.race_id)?.date < today);
               if (completed.length === 0) return null;
               return (
-                <div style={{ marginTop: 28 }}>
+                <div style={{ marginTop: 36 }}>
                   <h2 style={sectionTitle}>Gjennomført</h2>
                   <div>
                     {completed.sort((a, b) => {
@@ -551,12 +576,12 @@ export default function Main({ session }) {
                       const race = races.find((r) => r.id === entry.race_id);
                       if (!race) return null;
                       return (
-                        <div key={entry.id} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: 0.5 }}>
+                        <div key={entry.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: 0.45 }}>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div>
-                            <div style={{ fontSize: 12, color: "#7A7A6E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                            <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
                           </div>
-                          <span style={{ fontSize: 11, color: "#9B9B8E" }}>✓</span>
+                          <span style={{ fontSize: 11, color: "#C4C3BB" }}>✓</span>
                         </div>
                       );
                     })}
@@ -567,16 +592,16 @@ export default function Main({ session }) {
 
             {/* Following */}
             {selectedProfile.id === userId && followingIds.length > 0 && (
-              <div style={{ marginTop: 28 }}>
+              <div style={{ marginTop: 36 }}>
                 <h2 style={sectionTitle}>Følger</h2>
                 <div>
                   {profiles.filter((p) => followingIds.includes(p.id)).map((p) => (
-                    <div key={p.id} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div key={p.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div onClick={() => openProfile(p)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
                         <Avatar p={p} />
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 15 }}>{fullName(p)}</div>
-                          <div style={{ fontSize: 12, color: "#7A7A6E" }}>{p.city}</div>
+                          <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.2px" }}>{fullName(p)}</div>
+                          <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}</div>
                         </div>
                       </div>
                       <button onClick={(e) => { e.stopPropagation(); toggleFollow(p.id); }} style={pillBtn(true, true)}>Følger</button>
@@ -588,54 +613,54 @@ export default function Main({ session }) {
 
             {/* Settings */}
             {selectedProfile.id === userId && (
-              <div style={{ marginTop: 40 }}>
-                <button onClick={() => setShowSettings(!showSettings)} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>
+              <div style={{ marginTop: 48 }}>
+                <button onClick={() => setShowSettings(!showSettings)} style={{ fontSize: 12, color: "#C4C3BB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>
                   {showSettings ? "Skjul innstillinger" : "Innstillinger"}
                 </button>
 
                 {showSettings && (
-                  <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
-                    {settingsMessage && <div style={{ fontSize: 12, color: "#2D5A3D", background: "#EFF5F0", padding: "8px 12px", borderRadius: 8 }}>{settingsMessage}</div>}
+                  <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 24 }}>
+                    {settingsMessage && <div style={{ fontSize: 12, color: "#2D5A3D", background: "#EFF5F0", padding: "10px 14px", borderRadius: 10 }}>{settingsMessage}</div>}
 
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Endre by</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#9B9B8E", marginBottom: 8 }}>Endre by</div>
                       {!editingCity ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <span style={{ fontSize: 14 }}>{profile.city}</span>
-                          <button onClick={() => { setEditingCity(true); setEditCity(profile.city); }} style={{ ...pillBtn(false, false), padding: "4px 12px", fontSize: 11 }}>Endre</button>
+                          <button onClick={() => { setEditingCity(true); setEditCity(profile.city); }} style={{ ...pillBtn(false, false), padding: "4px 14px", fontSize: 11 }}>Endre</button>
                         </div>
                       ) : (
                         <div style={{ display: "flex", gap: 8 }}>
                           <input type="text" value={editCity} onChange={(e) => setEditCity(e.target.value)} style={{ ...inputStyle, flex: 1 }} autoFocus />
-                          <button onClick={updateCity} style={{ ...pillBtn(false, true), padding: "6px 14px" }}>Lagre</button>
-                          <button onClick={() => setEditingCity(false)} style={{ ...pillBtn(false, false), padding: "6px 14px" }}>Avbryt</button>
+                          <button onClick={updateCity} style={{ ...pillBtn(false, true), padding: "7px 16px" }}>Lagre</button>
+                          <button onClick={() => setEditingCity(false)} style={{ ...pillBtn(false, false), padding: "7px 16px" }}>Avbryt</button>
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Endre passord</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#9B9B8E", marginBottom: 8 }}>Endre passord</div>
                       {!changingPassword ? (
-                        <button onClick={() => setChangingPassword(true)} style={{ ...pillBtn(false, false), padding: "4px 12px", fontSize: 11 }}>Endre passord</button>
+                        <button onClick={() => setChangingPassword(true)} style={{ ...pillBtn(false, false), padding: "4px 14px", fontSize: 11 }}>Endre passord</button>
                       ) : (
                         <div style={{ display: "flex", gap: 8 }}>
                           <input type="password" placeholder="Nytt passord (min. 6 tegn)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ ...inputStyle, flex: 1 }} autoFocus />
-                          <button onClick={changePassword} style={{ ...pillBtn(false, true), padding: "6px 14px" }}>Lagre</button>
-                          <button onClick={() => { setChangingPassword(false); setNewPassword(""); }} style={{ ...pillBtn(false, false), padding: "6px 14px" }}>Avbryt</button>
+                          <button onClick={changePassword} style={{ ...pillBtn(false, true), padding: "7px 16px" }}>Lagre</button>
+                          <button onClick={() => { setChangingPassword(false); setNewPassword(""); }} style={{ ...pillBtn(false, false), padding: "7px 16px" }}>Avbryt</button>
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Slett konto</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#9B9B8E", marginBottom: 8 }}>Slett konto</div>
                       {!showDeleteConfirm ? (
                         <button onClick={() => setShowDeleteConfirm(true)} style={{ fontSize: 11, color: "#C53030", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", textDecoration: "underline", padding: 0 }}>Slett kontoen min permanent</button>
                       ) : (
-                        <div style={{ background: "#FFF5F5", border: "1px solid #FED7D7", borderRadius: 8, padding: 16 }}>
+                        <div style={{ background: "#FFF5F5", border: "1px solid #FED7D7", borderRadius: 10, padding: 18 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#C53030", marginBottom: 8 }}>Er du sikker?</div>
-                          <div style={{ fontSize: 12, color: "#7A7A6E", marginBottom: 12 }}>Alle dine data — profil, løp og følginger — slettes permanent. Dette kan ikke angres.</div>
+                          <div style={{ fontSize: 12, color: "#7A7A6E", marginBottom: 14 }}>Alle dine data slettes permanent. Dette kan ikke angres.</div>
                           <div style={{ display: "flex", gap: 8 }}>
-                            <button onClick={deleteAccount} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, padding: "6px 16px", borderRadius: 20, border: "1px solid #C53030", background: "#C53030", color: "#fff", cursor: "pointer" }}>Ja, slett kontoen</button>
+                            <button onClick={deleteAccount} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, padding: "7px 18px", borderRadius: 20, border: "1px solid #C53030", background: "#C53030", color: "#fff", cursor: "pointer" }}>Ja, slett kontoen</button>
                             <button onClick={() => setShowDeleteConfirm(false)} style={pillBtn(false, false)}>Avbryt</button>
                           </div>
                         </div>
@@ -643,14 +668,14 @@ export default function Main({ session }) {
                     </div>
 
                     <div style={{ paddingTop: 8 }}>
-                      <button onClick={handleLogout} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button>
+                      <button onClick={handleLogout} style={{ fontSize: 12, color: "#C4C3BB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button>
                     </div>
                   </div>
                 )}
 
                 {!showSettings && (
                   <div style={{ marginTop: 12 }}>
-                    <button onClick={handleLogout} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button>
+                    <button onClick={handleLogout} style={{ fontSize: 12, color: "#C4C3BB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button>
                   </div>
                 )}
               </div>
@@ -660,24 +685,24 @@ export default function Main({ session }) {
 
         {/* RACE DETAIL */}
         {view === "race" && selectedRace && (
-          <div style={{ padding: "32px 0 40px" }}>
-            <div onClick={goRaces} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 24 }}>← Tilbake</div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 4px" }}>{selectedRace.name}</h1>
-            <div style={{ fontSize: 14, color: "#7A7A6E", marginBottom: selectedRace.user_created ? 8 : 16 }}>{raceLocation(selectedRace)} · {selectedRace.distance} · {formatDate(selectedRace.date)}</div>
-            {selectedRace.user_created && <div style={{ fontSize: 11, color: "#C4C3BB", marginBottom: 16 }}>Lagt til av bruker — verifiser dato hos arrangør</div>}
+          <div style={{ padding: "36px 0 60px" }}>
+            <div onClick={goRaces} style={{ fontSize: 13, color: "#C4C3BB", cursor: "pointer", marginBottom: 28 }}>← Tilbake</div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.5px" }}>{selectedRace.name}</h1>
+            <div style={{ fontSize: 14, color: "#9B9B8E", marginBottom: selectedRace.user_created ? 8 : 20 }}>{raceLocation(selectedRace)} · {selectedRace.distance} · {formatDate(selectedRace.date)}</div>
+            {selectedRace.user_created && <div style={{ fontSize: 11, color: "#D4D3CC", marginBottom: 20 }}>Lagt til av bruker — verifiser dato hos arrangør</div>}
 
             {!myEntries.some((e) => e.race_id === selectedRace.id) ? (
-              <div style={{ marginBottom: 24 }}>
-                <button onClick={() => addRaceToMyList(selectedRace.id)} style={{ fontSize: 13, fontWeight: 500, padding: "8px 20px", borderRadius: 20, border: "1px solid #2D5A3D", background: "#2D5A3D", color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>+ Legg til i mine løp</button>
+              <div style={{ marginBottom: 28 }}>
+                <button onClick={() => addRaceToMyList(selectedRace.id)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(45,90,61,0.2)", transition: "all 0.2s ease" }}>+ Legg til i mine løp</button>
               </div>
             ) : (
-              <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 24 }}>✓ Lagt til i dine løp</div>
+              <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 28 }}>✓ Lagt til i dine løp</div>
             )}
 
             <h2 style={sectionTitle}>Påmeldte løpere</h2>
             {(() => {
               const raceEntries = entries.filter((e) => e.race_id === selectedRace.id);
-              if (raceEntries.length === 0) return <div style={{ fontSize: 13, color: "#9B9B8E" }}>Ingen registrerte løpere ennå</div>;
+              if (raceEntries.length === 0) return <div style={{ fontSize: 13, color: "#C4C3BB" }}>Ingen registrerte løpere ennå</div>;
               return (
                 <div>
                   {raceEntries.map((entry) => {
@@ -685,15 +710,15 @@ export default function Main({ session }) {
                     if (!p) return null;
                     const isMe = p.id === userId;
                     return (
-                      <div key={p.id} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div key={p.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div onClick={() => openProfile(p)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
                           <Avatar p={p} />
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: 15 }}>{fullName(p)} {isMe && <span style={{ fontWeight: 400, color: "#9B9B8E" }}>(deg)</span>}</div>
-                            <div style={{ fontSize: 12, color: "#7A7A6E" }}>{p.city}{entry.goal && ` · Mål: ${entry.goal}`}</div>
+                            <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.2px" }}>{fullName(p)} {isMe && <span style={{ fontWeight: 400, color: "#C4C3BB" }}>(deg)</span>}</div>
+                            <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal && ` · Mål: ${entry.goal}`}</div>
                           </div>
                         </div>
-                        {!isMe && <span style={{ color: "#C4C3BB", fontSize: 16, cursor: "pointer" }} onClick={() => openProfile(p)}>›</span>}
+                        {!isMe && <span style={{ color: "#D4D3CC", fontSize: 16, cursor: "pointer" }} onClick={() => openProfile(p)}>›</span>}
                       </div>
                     );
                   })}
@@ -704,7 +729,7 @@ export default function Main({ session }) {
         )}
       </main>
 
-      <footer style={{ marginTop: 60, padding: "20px", textAlign: "center", fontSize: 11, color: "#C4C3BB" }}>
+      <footer style={{ padding: "24px", textAlign: "center", fontSize: 11, color: "#C4C3BB", borderTop: "1px solid #EDECE6" }}>
         <div>startlista · laget for løpere som vil finne hverandre</div>
         <div style={{ marginTop: 6 }}><a href="/personvern" style={{ color: "#C4C3BB", textDecoration: "underline" }}>Personvern</a></div>
       </footer>
