@@ -15,15 +15,15 @@ const capitalize = (str) => str.replace(/\b\w/g, (c) => c.toUpperCase());
 const fuzzyMatch = (input, target) => {
   const a = input.toLowerCase().replace(/[^a-zæøå0-9]/g, "");
   const b = target.toLowerCase().replace(/[^a-zæøå0-9]/g, "");
-  if (a.length < 3) return false;
+  if (a.length < 4) return false;
   if (b.includes(a) || a.includes(b)) return true;
+  // Only match if strings are very similar
   let matches = 0;
-  const shorter = a.length < b.length ? a : b;
-  const longer = a.length < b.length ? b : a;
-  for (let i = 0; i < shorter.length; i++) {
-    if (longer.includes(shorter[i])) matches++;
+  for (let i = 0; i < a.length; i++) {
+    const idx = b.indexOf(a[i], Math.max(0, i - 2));
+    if (idx !== -1 && Math.abs(idx - i) <= 2) matches++;
   }
-  return matches / shorter.length > 0.7;
+  return matches / a.length > 0.85;
 };
 
 export default function Main({ session }) {
@@ -116,14 +116,16 @@ export default function Main({ session }) {
 
   const addManualRace = async () => {
     if (!newRace.name || !newRace.location || !newRace.date || !newRace.distance) return;
-    const { data: raceData } = await supabase.from("races").insert({
+    const { data: raceData, error: raceError } = await supabase.from("races").insert({
       name: capitalize(newRace.name), location: capitalize(newRace.location),
       date: newRace.date, distance: newRace.distance,
       country: newRace.country ? capitalize(newRace.country) : "", user_created: true,
     }).select().single();
+    if (raceError) { console.error("Race insert error:", raceError); return; }
     if (raceData) {
       setRaces((prev) => [...prev, raceData]);
-      const { data: entryData } = await supabase.from("entries").insert({ user_id: userId, race_id: raceData.id, goal: newRace.goal }).select().single();
+      const { data: entryData, error: entryError } = await supabase.from("entries").insert({ user_id: userId, race_id: raceData.id, goal: newRace.goal || "" }).select().single();
+      if (entryError) { console.error("Entry insert error:", entryError); return; }
       if (entryData) setEntries((prev) => [...prev, entryData]);
     }
     setShowAddRace(false); setManualMode(false); setNewRace({ name: "", location: "", date: "", distance: "", country: "", goal: "" }); setSearchQuery("");
@@ -173,12 +175,12 @@ export default function Main({ session }) {
   const raceLocation = (race) => `${race.location}${race.country && race.country !== "Norge" ? `, ${race.country}` : ""}`;
 
   const filteredRaces = searchQuery.length > 0
-    ? races.filter((r) => r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.location.toLowerCase().includes(searchQuery.toLowerCase()) || (r.country && r.country.toLowerCase().includes(searchQuery.toLowerCase())))
+    ? races.filter((r) => r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.location.toLowerCase().includes(searchQuery.toLowerCase()) || (r.country && r.country.toLowerCase().includes(searchQuery.toLowerCase()))).slice(0, 5)
     : [];
 
   const getSuggestions = (name) => {
-    if (!name || name.length < 3) return [];
-    return races.filter((r) => fuzzyMatch(name, r.name) && !myEntries.some((e) => e.race_id === r.id));
+    if (!name || name.length < 4) return [];
+    return races.filter((r) => fuzzyMatch(name, r.name) && !myEntries.some((e) => e.race_id === r.id)).slice(0, 3);
   };
 
   const inputStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "12px 14px", border: "1px solid #E2E0D8", borderRadius: 10, background: "#fff", color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s ease" };
@@ -311,20 +313,60 @@ export default function Main({ session }) {
               <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.8px", marginBottom: 8 }}>Velkommen til startlista</div>
               <div style={{ fontSize: 15, color: "#9B9B8E", lineHeight: 1.5 }}>Din og dine løpevenners terminliste.</div>
             </div>
-            <h2 style={sectionTitle}>Kommende løp</h2>
-            <div>
-              {races.filter((r) => r.date >= today).map((race) => {
-                const ps = entries.filter((e) => e.race_id === race.id).map((e) => profiles.find((p) => p.id === e.user_id)).filter(Boolean);
+
+            {/* Races where you or people you follow are signed up */}
+            {(() => {
+              const relevantRaces = races.filter((r) => r.date >= today && entries.some((e) => e.race_id === r.id && (e.user_id === userId || followingIds.includes(e.user_id))));
+              if (relevantRaces.length > 0) {
                 return (
-                  <RaceRow key={race.id} race={race} onClick={() => openRace(race.id)} rightContent={
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      {ps.length > 0 && <AvatarStack participants={ps} />}
-                      <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
+                  <>
+                    <h2 style={sectionTitle}>Dine løp</h2>
+                    <div>
+                      {relevantRaces.map((race) => {
+                        const ps = entries.filter((e) => e.race_id === race.id).map((e) => profiles.find((p) => p.id === e.user_id)).filter(Boolean);
+                        return (
+                          <RaceRow key={race.id} race={race} onClick={() => openRace(race.id)} rightContent={
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              {ps.length > 0 && <AvatarStack participants={ps} />}
+                              <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
+                            </div>
+                          } />
+                        );
+                      })}
                     </div>
-                  } />
+                  </>
                 );
-              })}
-            </div>
+              }
+              return null;
+            })()}
+
+            {/* A few upcoming popular races */}
+            {(() => {
+              const myRaceIds = entries.filter((e) => e.user_id === userId || followingIds.includes(e.user_id)).map((e) => e.race_id);
+              const otherRaces = races.filter((r) => r.date >= today && !myRaceIds.includes(r.id)).slice(0, 6);
+              return (
+                <>
+                  <h2 style={{ ...sectionTitle, marginTop: 36 }}>Kommende løp</h2>
+                  <div>
+                    {otherRaces.map((race) => {
+                      const ps = entries.filter((e) => e.race_id === race.id).map((e) => profiles.find((p) => p.id === e.user_id)).filter(Boolean);
+                      return (
+                        <RaceRow key={race.id} race={race} onClick={() => openRace(race.id)} rightContent={
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {ps.length > 0 && <AvatarStack participants={ps} />}
+                            <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
+                          </div>
+                        } />
+                      );
+                    })}
+                  </div>
+                  <div style={{ textAlign: "center", paddingTop: 16 }}>
+                    <span style={{ fontSize: 12, color: "#C4C3BB" }}>Bruk søkefeltet for å finne flere løp</span>
+                  </div>
+                </>
+              );
+            })()}
+
             <div style={{ padding: "48px 0 0" }}>
               <h2 style={sectionTitle}>Løpere</h2>
               <div>
