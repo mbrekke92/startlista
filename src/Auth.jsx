@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "./supabase.js";
 
-export default function Auth() {
-  const [mode, setMode] = useState("login");
+export default function Auth({ initialMode = "login", onBack }) {
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -40,7 +40,6 @@ export default function Auth() {
     setLoading(true);
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { first_name: firstName.trim(), last_name: lastName.trim(), city: city.trim() } } });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
-
     setLoading(false);
     if (!data.session) setMode("confirm");
   };
@@ -79,6 +78,9 @@ export default function Auth() {
   return (
     <div style={{ minHeight: "100vh", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ maxWidth: 380, width: "100%", padding: "0 20px", fontFamily: "'DM Sans', sans-serif" }}>
+        {onBack && (
+          <div onClick={onBack} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 24, textAlign: "center" }}>← Tilbake til forsiden</div>
+        )}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 24, fontWeight: 600, color: "#2D5A3D", marginBottom: 4 }}>startlista</div>
           <div style={{ fontSize: 13, color: "#9B9B8E" }}>
