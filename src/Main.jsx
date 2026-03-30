@@ -652,9 +652,16 @@ export default function Main({ session }) {
                 <span style={{ fontSize: 12, color: "#9B9B8E" }}>Følger</span>
               )}
               {selectedProfile.id === userId && (
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <button onClick={() => { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
-                  <span onClick={() => { navigator.clipboard.writeText(`https://startlista.no/${fullName(profile).toLowerCase().replace(/\s+/g, "-")}`); alert("Lenke kopiert!"); }} style={{ fontSize: 12, color: "#9B9B8E", cursor: "pointer", textDecoration: "underline" }}>Del profil</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button onClick={() => { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
+                    <span onClick={() => {
+                      const url = "https://startlista.no";
+                      const text = `Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning.`;
+                      if (navigator.share) { navigator.share({ title: "startlista", text, url }); }
+                      else { navigator.clipboard.writeText(`${text} ${url}`); alert("Tekst kopiert!"); }
+                    }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Inviter en løpevenn →</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -926,11 +933,25 @@ export default function Main({ session }) {
             <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 20 }}>{entries.filter((e) => e.race_id === selectedRace.id).length} løpere registrert</div>
 
             {!myEntries.some((e) => e.race_id === selectedRace.id) ? (
-              <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
                 <button onClick={() => addRaceToMyList(selectedRace.id)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til i mine løp</button>
+                <span onClick={() => {
+                  const url = "https://startlista.no";
+                  const text = `Skal du løpe ${selectedRace.name}? Se hvem som er påmeldt og har samme målsetning som deg på startlista.no`;
+                  if (navigator.share) { navigator.share({ title: selectedRace.name, text, url }); }
+                  else { navigator.clipboard.writeText(`${text}`); alert("Tekst kopiert!"); }
+                }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Del løpet →</span>
               </div>
             ) : (
-              <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 28 }}>✓ Lagt til i dine løp</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
+                <span style={{ fontSize: 12, color: "#9B9B8E" }}>✓ Lagt til i dine løp</span>
+                <span onClick={() => {
+                  const url = "https://startlista.no";
+                  const text = `Skal du løpe ${selectedRace.name}? Se hvem som er påmeldt og har samme målsetning som deg på startlista.no`;
+                  if (navigator.share) { navigator.share({ title: selectedRace.name, text, url }); }
+                  else { navigator.clipboard.writeText(`${text}`); alert("Tekst kopiert!"); }
+                }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Del løpet →</span>
+              </div>
             )}
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
