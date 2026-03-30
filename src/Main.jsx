@@ -93,6 +93,7 @@ export default function Main({ session }) {
   const [newGoalH, setNewGoalH] = useState(0);
   const [newGoalM, setNewGoalM] = useState(0);
   const [newGoalS, setNewGoalS] = useState(0);
+  const [raceSortByTime, setRaceSortByTime] = useState(false);
   const carouselRef = useRef(null);
 
   const userId = session.user.id;
@@ -236,7 +237,7 @@ export default function Main({ session }) {
   const handleLogout = async () => { await supabase.auth.signOut(); };
 
   const openProfile = (p) => navigate(() => { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); });
-  const openRace = (raceId) => navigate(() => { setSelectedRace(races.find((r) => r.id === raceId)); setView("race"); setGlobalSearch(""); });
+  const openRace = (raceId) => navigate(() => { setSelectedRace(races.find((r) => r.id === raceId)); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); });
   const goRaces = () => navigate(() => { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); });
   const goFeed = () => navigate(() => { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); });
 
@@ -899,25 +900,40 @@ export default function Main({ session }) {
               <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 28 }}>✓ Lagt til i dine løp</div>
             )}
 
-            <h2 style={sectionTitle}>Påmeldte løpere</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Påmeldte løpere</h2>
+              <button onClick={() => setRaceSortByTime((v) => !v)} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: raceSortByTime ? "#2D5A3D" : "transparent", color: raceSortByTime ? "#fff" : "#9B9B8E", cursor: "pointer" }}>
+                {raceSortByTime ? "Sortert etter tid" : "Sorter etter tid"}
+              </button>
+            </div>
             {(() => {
               const raceEntries = entries.filter((e) => e.race_id === selectedRace.id);
               if (raceEntries.length === 0) return <div style={{ fontSize: 13, color: "#C4C3BB" }}>Ingen registrerte løpere ennå</div>;
-              // Sort by goal time
-              const sorted = [...raceEntries].sort((a, b) => {
-                const sa = parseGoalSeconds(a.goal);
-                const sb = parseGoalSeconds(b.goal);
-                if (sa && sb) return sa - sb;
-                if (sa) return -1;
-                if (sb) return 1;
-                return 0;
-              });
+
+              let sorted;
+              if (raceSortByTime) {
+                sorted = [...raceEntries].sort((a, b) => {
+                  const sa = parseGoalSeconds(a.goal);
+                  const sb = parseGoalSeconds(b.goal);
+                  if (sa && sb) return sa - sb;
+                  if (sa) return -1;
+                  if (sb) return 1;
+                  return 0;
+                });
+              } else {
+                // Default: following first, then rest
+                const followingEntries = raceEntries.filter((e) => followingIds.includes(e.user_id) || e.user_id === userId);
+                const otherEntries = raceEntries.filter((e) => !followingIds.includes(e.user_id) && e.user_id !== userId);
+                sorted = [...followingEntries, ...otherEntries];
+              }
+
               return (
                 <div>
                   {sorted.map((entry) => {
                     const p = profiles.find((pr) => pr.id === entry.user_id);
                     if (!p) return null;
                     const isMe = p.id === userId;
+                    const isFollowing = followingIds.includes(p.id);
                     return (
                       <div key={p.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div onClick={() => openProfile(p)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
