@@ -325,11 +325,29 @@ export default function Main({ session }) {
   };
 
   var getHeroRace = function() {
-    var relevant = races.filter(function(r) { return r.date >= today && entries.some(function(e) { return e.race_id === r.id && (e.user_id === userId || followingIds.includes(e.user_id)); }); }).sort(function(a, b) { return a.date.localeCompare(b.date); });
-    if (!relevant.length) return null;
-    var race = relevant[0];
+    // Priority 1: My own next race
+    var myRaces = races.filter(function(r) { return r.date >= today && entries.some(function(e) { return e.race_id === r.id && e.user_id === userId; }); }).sort(function(a, b) {
+      if (a.date === b.date) {
+        var countA = entries.filter(function(e) { return e.race_id === a.id; }).length;
+        var countB = entries.filter(function(e) { return e.race_id === b.id; }).length;
+        return countB - countA;
+      }
+      return a.date.localeCompare(b.date);
+    });
+    // Priority 2: Next race where someone I follow is signed up
+    var followingRaces = races.filter(function(r) { return r.date >= today && !myRaces.some(function(mr) { return mr.id === r.id; }) && entries.some(function(e) { return e.race_id === r.id && followingIds.includes(e.user_id); }); }).sort(function(a, b) {
+      if (a.date === b.date) {
+        var countA = entries.filter(function(e) { return e.race_id === a.id; }).length;
+        var countB = entries.filter(function(e) { return e.race_id === b.id; }).length;
+        return countB - countA;
+      }
+      return a.date.localeCompare(b.date);
+    });
+    var race = myRaces.length > 0 ? myRaces[0] : (followingRaces.length > 0 ? followingRaces[0] : null);
+    if (!race) return null;
     var ps = entries.filter(function(e) { return e.race_id === race.id; }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
-    return { race: race, participants: ps, days: daysUntil(race.date) };
+    var isOwn = myRaces.length > 0 && myRaces[0].id === race.id;
+    return { race: race, participants: ps, days: daysUntil(race.date), isOwn: isOwn };
   };
 
   var getNextSharedRace = function() {
@@ -468,7 +486,7 @@ export default function Main({ session }) {
               <div onClick={function() { openRace(hero.race.id); }} style={{ background: "#2D5A3D", borderRadius: 16, padding: "28px 24px", marginBottom: 28, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(45,90,61,0.2)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>Neste løp</div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>{hero.isOwn ? "Neste løp" : "Neste løp fra de du følger"}</div>
                     <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px" }}>{hero.race.name}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -695,29 +713,61 @@ export default function Main({ session }) {
               );
             })()}
 
-            {/* Season calendar */}
+            {/* Season timeline */}
             {(function() {
               var profileEntries = entries.filter(function(e) { return e.user_id === selectedProfile.id; });
-              var raceMonths = profileEntries.map(function(e) { var r = races.find(function(r) { return r.id === e.race_id; }); return r ? { month: new Date(r.date + "T00:00:00").getMonth(), past: r.date < today } : null; }).filter(Boolean);
-              if (raceMonths.length < 1) return null;
-              var months = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-              var currentMonth = new Date().getMonth();
+              var raceData = profileEntries.map(function(e) {
+                var r = races.find(function(r) { return r.id === e.race_id; });
+                if (!r) return null;
+                var d = new Date(r.date + "T00:00:00");
+                return { race: r, entry: e, month: d.getMonth(), day: d.getDate(), past: r.date < today, yearPos: (d.getMonth() * 30 + d.getDate()) / 365 };
+              }).filter(Boolean);
+              if (raceData.length < 1) return null;
+
+              var currentPos = (function() { var now = new Date(); return (now.getMonth() * 30 + now.getDate()) / 365; })();
+              var months = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"];
+
               return (
-                <div style={{ marginBottom: 28 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 2px" }}>
-                    {months.map(function(mo, i) {
-                      var monthRaces = raceMonths.filter(function(r) { return r.month === i; });
-                      var hasFuture = monthRaces.some(function(r) { return !r.past; });
-                      var hasPast = monthRaces.some(function(r) { return r.past; });
+                <div style={{ marginBottom: 32, background: "#fff", borderRadius: 14, border: "1px solid #EDECE6", padding: "20px 20px 16px", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#C4C3BB", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 16 }}>Sesong {new Date().getFullYear()}</div>
+
+                  {/* Timeline bar */}
+                  <div style={{ position: "relative", height: 40, marginBottom: 8 }}>
+                    {/* Base line */}
+                    <div style={{ position: "absolute", top: 18, left: 0, right: 0, height: 3, background: "#F0EFE9", borderRadius: 2 }} />
+
+                    {/* Progress line up to now */}
+                    <div style={{ position: "absolute", top: 18, left: 0, width: (currentPos * 100) + "%", height: 3, background: "linear-gradient(90deg, #C4C3BB, #2D5A3D)", borderRadius: 2 }} />
+
+                    {/* Now marker */}
+                    <div style={{ position: "absolute", top: 12, left: (currentPos * 100) + "%", transform: "translateX(-50%)" }}>
+                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#2D5A3D", border: "2px solid #fff", boxShadow: "0 0 0 2px #2D5A3D" }} />
+                    </div>
+
+                    {/* Race markers */}
+                    {raceData.map(function(rd) {
                       return (
-                        <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1 }}>
-                          {monthRaces.length > 0 ? <div style={{ width: 8, height: 8, borderRadius: "50%", background: hasFuture ? "#2D5A3D" : "#C4C3BB" }} /> : <div style={{ width: 8, height: 8 }} />}
-                          <div style={{ fontSize: 10, fontWeight: i === currentMonth ? 700 : 400, color: i === currentMonth ? "#2D5A3D" : "#C4C3BB" }}>{mo}</div>
+                        <div key={rd.race.id} onClick={function() { openRace(rd.race.id); }} style={{ position: "absolute", top: rd.past ? 24 : 0, left: (rd.yearPos * 100) + "%", transform: "translateX(-50%)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <div style={{ width: 6, height: 14, borderRadius: 3, background: rd.past ? "#C4C3BB" : "#2D5A3D" }} />
                         </div>
                       );
                     })}
                   </div>
-                  <div style={{ height: 1, background: "#EDECE6", marginTop: 8 }} />
+
+                  {/* Race labels below */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                    {raceData.sort(function(a, b) { return a.yearPos - b.yearPos; }).map(function(rd) {
+                      return (
+                        <div key={rd.race.id} onClick={function() { openRace(rd.race.id); }} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: rd.past ? "#C4C3BB" : "#2D5A3D", flexShrink: 0 }} />
+                          <span style={{ fontSize: 12, fontWeight: 600, color: rd.past ? "#C4C3BB" : "#1A1A1A" }}>{rd.race.name}</span>
+                          <span style={{ fontSize: 11, color: "#C4C3BB" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
+                          {rd.entry.result && <span style={{ fontSize: 10, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "1px 6px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>}
+                          {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "#9B9B8E", marginLeft: "auto" }}>Mål: {rd.entry.goal}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })()}
