@@ -409,9 +409,14 @@ export default function Main({ session }) {
                 const q = globalSearch.toLowerCase();
                 const matchedUsers = profiles.filter((p) => fullName(p).toLowerCase().includes(q) || p.city.toLowerCase().includes(q));
                 const matchedRaces = races.filter((r) => r.name.toLowerCase().includes(q) || r.location.toLowerCase().includes(q));
-                if (!matchedUsers.length && !matchedRaces.length) return <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, padding: 14, fontSize: 13, color: "#9B9B8E", zIndex: 50, marginTop: 4, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>Ingen treff</div>;
+                if (!matchedUsers.length && !matchedRaces.length) return (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, padding: 14, zIndex: 50, marginTop: 4, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
+                    <div style={{ fontSize: 13, color: "#9B9B8E", marginBottom: 8 }}>Ingen treff</div>
+                    <div onClick={() => { setGlobalSearch(""); openProfile(profile); setTimeout(() => { setShowAddRace(true); setManualMode(true); }, 100); }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Finner ikke løpet? Legg til manuelt →</div>
+                  </div>
+                );
                 return (
-                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, zIndex: 50, marginTop: 4, maxHeight: 300, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 10, zIndex: 50, marginTop: 4, maxHeight: 340, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
                     {matchedUsers.length > 0 && <>
                       <div style={{ padding: "10px 14px 6px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#C4C3BB" }}>Løpere</div>
                       {matchedUsers.map((p) => (
@@ -430,6 +435,7 @@ export default function Main({ session }) {
                         </div>
                       ))}
                     </>}
+                    <div onClick={() => { setGlobalSearch(""); openProfile(profile); setTimeout(() => { setShowAddRace(true); setManualMode(true); }, 100); }} style={{ padding: "10px 14px", borderTop: "1px solid #F0EFE9", fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Finner ikke løpet? Legg til manuelt →</div>
                   </div>
                 );
               })()}
@@ -702,7 +708,19 @@ export default function Main({ session }) {
                       </div>
                       <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Dato *</label><input type="date" value={newRace.date} onChange={(e) => setNewRace({ ...newRace, date: e.target.value })} style={inputStyle} /></div>
-                        <div style={{ flex: 1 }}><label style={labelStyle}>Distanse *</label><input type="text" placeholder="F.eks. 42.2 km" value={newRace.distance} onChange={(e) => setNewRace({ ...newRace, distance: e.target.value })} style={inputStyle} /></div>
+                        <div style={{ flex: 1 }}><label style={labelStyle}>Distanse *</label>
+                          <select value={["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) ? newRace.distance : newRace.distance ? "annet" : ""} onChange={(e) => { if (e.target.value === "annet") setNewRace({ ...newRace, distance: "" }); else setNewRace({ ...newRace, distance: e.target.value }); }} style={selectStyle}>
+                            <option value="">Velg distanse</option>
+                            <option value="5 km">5 km</option>
+                            <option value="10 km">10 km</option>
+                            <option value="21.0975 km">Halvmaraton (21.0975 km)</option>
+                            <option value="42.195 km">Maraton (42.195 km)</option>
+                            <option value="annet">Annen distanse</option>
+                          </select>
+                          {!["5 km", "10 km", "21.0975 km", "42.195 km", ""].includes(newRace.distance) && (
+                            <input type="text" placeholder="F.eks. 15 km" value={newRace.distance} onChange={(e) => setNewRace({ ...newRace, distance: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} autoFocus />
+                          )}
+                        </div>
                       </div>
                       <TimePicker h={newGoalH} m={newGoalM} s={newGoalS} onH={setNewGoalH} onM={setNewGoalM} onS={setNewGoalS} />
                     </div>
