@@ -24,10 +24,12 @@ const FYLKER = ["Agder", "Innlandet", "Møre og Romsdal", "Nordland", "Oslo", "R
 // Parse goal time string to total seconds
 const parseGoalSeconds = (goal) => {
   if (!goal) return null;
-  const parts = goal.replace(/\s/g, "").split(":").map(Number);
+  const cleaned = goal.replace(/\s/g, "");
+  const parts = cleaned.split(":").map(Number);
   if (parts.some(isNaN)) return null;
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 1 && parts[0] > 0) return parts[0] * 60; // single number = minutes
   return null;
 };
 
