@@ -126,6 +126,7 @@ export default function Landing({ onGetStarted }) {
         onMouseEnter={(e) => { e.target.style.transform = "scale(1.03)"; e.target.style.boxShadow = "0 6px 28px rgba(45,90,61,0.35)"; }}
         onMouseLeave={(e) => { e.target.style.transform = "scale(1)"; e.target.style.boxShadow = "0 4px 20px rgba(45,90,61,0.3)"; }}
         >Kom i gang</button>
+        <div style={{ fontSize: 13, color: "#C4C3BB", marginTop: 14 }}>Gratis — ingen abonnement, ingen skjulte kostnader.</div>
       </div>
 
       <div style={{
@@ -241,6 +242,7 @@ export default function Landing({ onGetStarted }) {
           onMouseEnter={(e) => { e.target.style.transform = "scale(1.03)"; e.target.style.boxShadow = "0 6px 28px rgba(45,90,61,0.35)"; }}
           onMouseLeave={(e) => { e.target.style.transform = "scale(1)"; e.target.style.boxShadow = "0 4px 20px rgba(45,90,61,0.3)"; }}
           >Opprett konto</button>
+          <div style={{ fontSize: 13, color: "#C4C3BB", marginTop: 14 }}>Gratis — ingen abonnement, ingen skjulte kostnader.</div>
         </FadeIn>
       </div>
 
