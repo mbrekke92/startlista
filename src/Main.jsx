@@ -669,16 +669,25 @@ export default function Main({ session }) {
           <div style={{ padding: "36px 0 60px" }}>
             <div onClick={goRaces} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 28, fontWeight: 500 }}>← Tilbake</div>
 
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 6 }}>
-                <Av p={selectedProfile} size={48} fontSize={17} />
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <Av p={selectedProfile} size={52} fontSize={18} />
                 <div>
-                  <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px" }}>{fullName(selectedProfile)}</div>
-                  <div style={{ fontSize: 13, color: "#9B9B8E", marginTop: 1 }}>{selectedProfile.city}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>{fullName(selectedProfile)}</div>
+                  <div style={{ fontSize: 13, color: "#9B9B8E", marginTop: 2 }}>{selectedProfile.city}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 16 }}>
-                {entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date >= today; }).length} planlagte løp · {entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date < today; }).length} gjennomført
+
+              {/* Stats boxes */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+                <div style={{ flex: 1, background: "#fff", border: "1px solid #EDECE6", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#2D5A3D", letterSpacing: "-0.5px" }}>{entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date >= today; }).length}</div>
+                  <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>planlagte</div>
+                </div>
+                <div style={{ flex: 1, background: "#fff", border: "1px solid #EDECE6", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.5px" }}>{entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date < today; }).length}</div>
+                  <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>gjennomført</div>
+                </div>
               </div>
 
               {selectedProfile.id !== userId && !followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ ...pill(false, true), fontSize: 13, padding: "9px 24px" }}>Følg</button>}
@@ -699,15 +708,18 @@ export default function Main({ session }) {
               var race = races.find(function(r) { return r.id === entry.race_id; });
               var days = daysUntil(race.date);
               return (
-                <div onClick={function() { openRace(race.id); }} style={{ background: "#fff", border: "1px solid #EDECE6", borderRadius: 14, padding: 20, marginBottom: 24, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: "#9B9B8E", marginBottom: 3 }}>Neste løp</div>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>{race.name}</div>
-                    <div style={{ fontSize: 12, color: "#9B9B8E", marginTop: 2 }}>{formatDate(race.date)}{entry.goal ? " · Mål: " + entry.goal : ""}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: "#2D5A3D", letterSpacing: "-1px" }}>{days}</div>
-                    <div style={{ fontSize: 11, color: "#9B9B8E" }}>{days === 1 ? "dag" : "dager"}</div>
+                <div onClick={function() { openRace(race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "24px", marginBottom: 24, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 4 }}>Neste løp</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 6 }}>{race.name}</div>
+                      <div style={{ fontSize: 12, opacity: 0.7 }}>{raceLocation(race)} · {race.distance}</div>
+                      {entry.goal && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>Mål: {entry.goal}</div>}
+                    </div>
+                    <div style={{ textAlign: "right", marginLeft: 16 }}>
+                      <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-2px", lineHeight: 1 }}>{days}</div>
+                      <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{days === 1 ? "dag" : "dager"}</div>
+                    </div>
                   </div>
                 </div>
               );
@@ -728,42 +740,33 @@ export default function Main({ session }) {
               var months = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"];
 
               return (
-                <div style={{ marginBottom: 32, background: "#fff", borderRadius: 14, border: "1px solid #EDECE6", padding: "20px 20px 16px", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#C4C3BB", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 16 }}>Sesong {new Date().getFullYear()}</div>
+                <div style={{ marginBottom: 28, background: "#1A1A1A", borderRadius: 16, padding: "22px 22px 18px", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>Sesong {new Date().getFullYear()}</div>
 
-                  {/* Timeline bar */}
-                  <div style={{ position: "relative", height: 40, marginBottom: 8 }}>
-                    {/* Base line */}
-                    <div style={{ position: "absolute", top: 18, left: 0, right: 0, height: 3, background: "#F0EFE9", borderRadius: 2 }} />
-
-                    {/* Progress line up to now */}
-                    <div style={{ position: "absolute", top: 18, left: 0, width: (currentPos * 100) + "%", height: 3, background: "linear-gradient(90deg, #C4C3BB, #2D5A3D)", borderRadius: 2 }} />
-
-                    {/* Now marker */}
-                    <div style={{ position: "absolute", top: 12, left: (currentPos * 100) + "%", transform: "translateX(-50%)" }}>
-                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#2D5A3D", border: "2px solid #fff", boxShadow: "0 0 0 2px #2D5A3D" }} />
+                  <div style={{ position: "relative", height: 36, marginBottom: 12 }}>
+                    <div style={{ position: "absolute", top: 16, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2 }} />
+                    <div style={{ position: "absolute", top: 16, left: 0, width: (currentPos * 100) + "%", height: 3, background: "linear-gradient(90deg, rgba(255,255,255,0.2), #2D5A3D)", borderRadius: 2 }} />
+                    <div style={{ position: "absolute", top: 10, left: (currentPos * 100) + "%", transform: "translateX(-50%)" }}>
+                      <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#2D5A3D", border: "2px solid #1A1A1A", boxShadow: "0 0 8px rgba(45,90,61,0.6), 0 0 0 2px #2D5A3D" }} />
                     </div>
-
-                    {/* Race markers */}
                     {raceData.map(function(rd) {
                       return (
-                        <div key={rd.race.id} onClick={function() { openRace(rd.race.id); }} style={{ position: "absolute", top: rd.past ? 24 : 0, left: (rd.yearPos * 100) + "%", transform: "translateX(-50%)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <div style={{ width: 6, height: 14, borderRadius: 3, background: rd.past ? "#C4C3BB" : "#2D5A3D" }} />
+                        <div key={rd.race.id} style={{ position: "absolute", top: rd.past ? 22 : 2, left: (rd.yearPos * 100) + "%", transform: "translateX(-50%)" }}>
+                          <div style={{ width: 4, height: 12, borderRadius: 2, background: rd.past ? "rgba(255,255,255,0.25)" : "#4ADE80" }} />
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Race labels below */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
                     {raceData.sort(function(a, b) { return a.yearPos - b.yearPos; }).map(function(rd) {
                       return (
-                        <div key={rd.race.id} onClick={function() { openRace(rd.race.id); }} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: rd.past ? "#C4C3BB" : "#2D5A3D", flexShrink: 0 }} />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: rd.past ? "#C4C3BB" : "#1A1A1A" }}>{rd.race.name}</span>
-                          <span style={{ fontSize: 11, color: "#C4C3BB" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
-                          {rd.entry.result && <span style={{ fontSize: 10, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "1px 6px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>}
-                          {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "#9B9B8E", marginLeft: "auto" }}>Mål: {rd.entry.goal}</span>}
+                        <div key={rd.race.id} onClick={function() { openRace(rd.race.id); }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: rd.past ? "rgba(255,255,255,0.25)" : "#4ADE80", flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: rd.past ? "rgba(255,255,255,0.4)" : "#fff" }}>{rd.race.name}</span>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
+                          {rd.entry.result && <span style={{ fontSize: 10, fontWeight: 600, color: "#4ADE80", background: "rgba(74,222,128,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>}
+                          {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>Mål: {rd.entry.goal}</span>}
                         </div>
                       );
                     })}
