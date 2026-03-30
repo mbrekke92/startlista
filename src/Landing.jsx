@@ -219,7 +219,7 @@ export default function Landing({ onGetStarted }) {
         <FadeIn>
           <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
             <div style={{ fontSize: "clamp(22px, 4.5vw, 32px)", fontWeight: 700, color: "#1A1A1A", lineHeight: 1.35, margin: "0 0 20px", letterSpacing: "-0.5px" }}>
-              «Skal du løpe Sentrumsløpet?»
+              «Skal du løpe Drammen 10K?»
             </div>
             <div style={{ fontSize: 16, color: "#9B9B8E", lineHeight: 1.7, margin: 0 }}>
               Du har sikkert spurt noen det spørsmålet. Med startlista trenger du ikke spørre — du ser det med én gang.
