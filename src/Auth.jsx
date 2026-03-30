@@ -73,6 +73,9 @@ export default function Auth({ initialMode = "login", onBack }) {
           <div style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.5 }}>
             Vi har sendt en bekreftelseslenke til <strong>{email}</strong>. Klikk på lenken for å aktivere kontoen din.
           </div>
+          <div style={{ fontSize: 12, color: "#9B9B8E", lineHeight: 1.5, marginTop: 12 }}>
+            Finner du ikke e-posten? Sjekk søppelpost/spam.
+          </div>
           <button onClick={() => { setMode("login"); setError(""); setMessage(""); }} style={{
             marginTop: 24, fontFamily: "'DM Sans', sans-serif", fontSize: 13,
             color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline",
