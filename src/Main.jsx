@@ -43,8 +43,17 @@ const formatGoalTime = (h, m, s) => {
 const getMatchTolerance = (distance) => {
   const d = (distance || "").toLowerCase();
   if (d.includes("42") || d.includes("maraton")) return 300; // ±5 min
-  if (d.includes("21") || d.includes("halv")) return 180; // ±3 min
-  return 60; // ±1 min for 10km etc
+  if (d.includes("21") || d.includes("halv")) return 300; // ±5 min
+  return 120; // ±2 min for 10km etc
+};
+
+const getDistanceCategory = (distance) => {
+  const d = (distance || "").toLowerCase();
+  if (d.includes("42") || d.includes("maraton") && !d.includes("halv")) return "maraton";
+  if (d.includes("21") || d.includes("halv")) return "halvmaraton";
+  if (d.includes("10")) return "10 km";
+  if (d.includes("5")) return "5 km";
+  return null;
 };
 
 const fuzzyMatch = (input, target) => {
@@ -265,15 +274,20 @@ export default function Main({ session }) {
       const followingParticipants = participants.filter((p) => followingIds.includes(p.id));
       const sameAreaParticipants = participants.filter((p) => p.city === profile.city && p.id !== userId);
       
-      // Find same goal participants
-      const myGoals = myEntries.map((e) => ({ raceId: e.race_id, secs: parseGoalSeconds(e.goal) })).filter((g) => g.secs);
+      // Find same goal participants — only within same distance category
+      const raceDistCat = getDistanceCategory(race.distance);
+      const myGoalsForDist = myEntries.map((e) => {
+        const r = races.find((r) => r.id === e.race_id);
+        return { dist: r ? getDistanceCategory(r.distance) : null, secs: parseGoalSeconds(e.goal) };
+      }).filter((g) => g.secs && g.dist === raceDistCat);
+
       let sameGoalCount = 0;
       const tolerance = getMatchTolerance(race.distance);
       raceEntries.forEach((e) => {
         if (e.user_id === userId) return;
         const theirSecs = parseGoalSeconds(e.goal);
         if (!theirSecs) return;
-        myGoals.forEach((mg) => {
+        myGoalsForDist.forEach((mg) => {
           if (Math.abs(theirSecs - mg.secs) <= tolerance) sameGoalCount++;
         });
       });
@@ -282,7 +296,7 @@ export default function Main({ session }) {
       if (score === 0 && participants.length === 0) return null;
 
       return {
-        race, participants, followingParticipants, sameAreaParticipants, sameGoalCount, score, total: participants.length,
+        race, participants, followingParticipants, sameAreaParticipants, sameGoalCount, sameGoalDist: raceDistCat, score, total: participants.length,
       };
     }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 5);
   };
@@ -498,7 +512,7 @@ export default function Main({ session }) {
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 14 }}>
                           {s.followingParticipants.length > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.followingParticipants.length} du følger skal løpe</div>}
                           {s.sameAreaParticipants.length > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.sameAreaParticipants.length} løpere fra {profile.city}</div>}
-                          {s.sameGoalCount > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.sameGoalCount} med samme tidsmål</div>}
+                          {s.sameGoalCount > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.sameGoalCount} med samme tidsmål{s.sameGoalDist ? ` på ${s.sameGoalDist}` : ""}</div>}
                         </div>
                         {s.participants.length > 0 && <AvatarStack participants={s.participants} max={5} />}
                       </div>
@@ -709,15 +723,14 @@ export default function Main({ session }) {
                       <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Dato *</label><input type="date" value={newRace.date} onChange={(e) => setNewRace({ ...newRace, date: e.target.value })} style={inputStyle} /></div>
                         <div style={{ flex: 1 }}><label style={labelStyle}>Distanse *</label>
-                          <select value={["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) ? newRace.distance : newRace.distance ? "annet" : ""} onChange={(e) => { if (e.target.value === "annet") setNewRace({ ...newRace, distance: "" }); else setNewRace({ ...newRace, distance: e.target.value }); }} style={selectStyle}>
-                            <option value="">Velg distanse</option>
+                          <select value={["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) ? newRace.distance : "annet"} onChange={(e) => { if (e.target.value === "annet") setNewRace({ ...newRace, distance: "" }); else setNewRace({ ...newRace, distance: e.target.value }); }} style={selectStyle}>
+                            <option value="annet">Annen distanse</option>
                             <option value="5 km">5 km</option>
                             <option value="10 km">10 km</option>
                             <option value="21.0975 km">Halvmaraton (21.0975 km)</option>
                             <option value="42.195 km">Maraton (42.195 km)</option>
-                            <option value="annet">Annen distanse</option>
                           </select>
-                          {!["5 km", "10 km", "21.0975 km", "42.195 km", ""].includes(newRace.distance) && (
+                          {!["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) && (
                             <input type="text" placeholder="F.eks. 15 km" value={newRace.distance} onChange={(e) => setNewRace({ ...newRace, distance: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} autoFocus />
                           )}
                         </div>
