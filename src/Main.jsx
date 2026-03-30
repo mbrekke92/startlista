@@ -482,7 +482,10 @@ export default function Main({ session }) {
             </div>
 
             {/* Hero */}
-            {hero && (
+            {hero && (function() {
+              var totalCount = entries.filter(function(e) { return e.race_id === hero.race.id; }).length;
+              var followingPs = hero.participants.filter(function(p) { return followingIds.includes(p.id) || p.id === userId; });
+              return (
               <div onClick={function() { openRace(hero.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 28, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
@@ -496,11 +499,12 @@ export default function Main({ session }) {
                 </div>
                 <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>{raceLocation(hero.race)} · {hero.race.distance} · {formatDate(hero.race.date)}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ display: "flex" }}>{hero.participants.slice(0, 5).map(function(p, i) { return <div key={p.id} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: i > 0 ? -8 : 0, border: "2px solid #2D5A3D" }}>{getInitials(p.first_name, p.last_name)}</div>; })}</div>
-                  <span style={{ fontSize: 12, opacity: 0.7 }}>{hero.participants.length} påmeldt</span>
+                  <div style={{ display: "flex" }}>{followingPs.slice(0, 5).map(function(p, i) { return <div key={p.id} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: i > 0 ? -8 : 0, border: "2px solid rgba(26,26,26,0.5)" }}>{getInitials(p.first_name, p.last_name)}</div>; })}</div>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{totalCount} påmeldt{followingPs.length > 0 ? " · " + followingPs.length + " du følger" : ""}</span>
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Following races */}
             {(function() {
@@ -511,7 +515,7 @@ export default function Main({ session }) {
                 <div>
                   <h2 style={sT}>Løp fra de du følger</h2>
                   <div>{visible.map(function(race) {
-                    var ps = entries.filter(function(e) { return e.race_id === race.id; }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
+                    var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
                       <div key={race.id} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>
@@ -544,10 +548,10 @@ export default function Main({ session }) {
                           <div style={{ fontSize: 11, color: "#9B9B8E", marginBottom: 6 }}>{s.total} løpere registrert</div>
                           <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 12 }}>{s.race.name}</div>
                           <div style={{ fontSize: 11, color: "#7A7A6E", marginBottom: 14 }}>{raceLocation(s.race)} · {formatDate(s.race.date)}</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 14 }}>
-                            {s.followingParticipants.length > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.followingParticipants.length} du følger skal løpe</div>}
-                            {s.sameAreaParticipants.length > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.sameAreaParticipants.length} løpere fra {profile.city}</div>}
-                            {s.sameGoalCount > 0 && <div style={{ fontSize: 12, color: "#1A1A1A" }}>{s.sameGoalCount} med samme tidsmål{s.sameGoalDist ? " på " + s.sameGoalDist : ""}</div>}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
+                            {s.followingParticipants.length > 0 && <div style={{ fontSize: 12, color: "#5A5A52" }}>{s.followingParticipants.length} du følger skal løpe</div>}
+                            {s.sameAreaParticipants.length > 0 && <div style={{ fontSize: 12, color: "#5A5A52" }}>{s.sameAreaParticipants.length} {s.sameAreaParticipants.length === 1 ? "løper" : "løpere"} fra {profile.city}</div>}
+                            {s.sameGoalCount > 0 && <div style={{ fontSize: 12, color: "#5A5A52" }}>{s.sameGoalCount} med samme tidsmål{s.sameGoalDist ? " på " + s.sameGoalDist : ""}</div>}
                           </div>
                           {s.participants.length > 0 && <AvStack participants={s.participants} max={5} />}
                         </div>
@@ -573,7 +577,7 @@ export default function Main({ session }) {
                     return (
                       <div key={item.race.id} onClick={function() { openRace(item.race.id); }} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: 10, background: i === 0 ? "#2D5A3D" : i === 1 ? "#4A5568" : "#8B4513", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
+                          <div style={{ width: 32, height: 32, borderRadius: 10, background: i === 0 ? "#9A7B4F" : i === 1 ? "#6B7280" : "#8B6914", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px" }}>{item.race.name}</div>
                             <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)}</div>
@@ -599,7 +603,7 @@ export default function Main({ session }) {
                 <div style={{ marginTop: 40 }}>
                   <h2 style={sT}>Kommende løp</h2>
                   {other.map(function(race) {
-                    var ps = entries.filter(function(e) { return e.race_id === race.id; }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
+                    var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
                       <div key={race.id} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>
@@ -623,7 +627,7 @@ export default function Main({ session }) {
             </div>
 
             {nextShared && (
-              <div onClick={function() { openRace(nextShared.race.id); }} style={{ background: "linear-gradient(135deg, #2D5A3D 0%, #3D7A52 100%)", borderRadius: 14, padding: "22px 20px", marginBottom: 24, cursor: "pointer", color: "#fff" }}>
+              <div onClick={function() { openRace(nextShared.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "24px 22px", marginBottom: 24, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>Om {nextShared.days} {nextShared.days === 1 ? "dag" : "dager"} løper du og {nextShared.friends[0] ? fullName(nextShared.friends[0]) : ""}{nextShared.friends.length > 1 ? " +" + (nextShared.friends.length - 1) : ""}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px" }}>{nextShared.race.name}</div>
                 <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{raceLocation(nextShared.race)} · {nextShared.race.distance}</div>
@@ -765,7 +769,7 @@ export default function Main({ session }) {
                           <div style={{ width: 6, height: 6, borderRadius: "50%", background: rd.past ? "rgba(255,255,255,0.25)" : "#4ADE80", flexShrink: 0 }} />
                           <span style={{ fontSize: 13, fontWeight: 600, color: rd.past ? "rgba(255,255,255,0.4)" : "#fff" }}>{rd.race.name}</span>
                           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
-                          {rd.entry.result && <span style={{ fontSize: 10, fontWeight: 600, color: "#4ADE80", background: "rgba(74,222,128,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>}
+                          {rd.entry.result && (rd.entry.result === "DNS" || rd.entry.result === "DNF" ? <span style={{ fontSize: 10, fontWeight: 600, color: "#ff6b6b", background: "rgba(255,107,107,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span> : <span style={{ fontSize: 10, fontWeight: 600, color: "#4ADE80", background: "rgba(74,222,128,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>)}
                           {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>Mål: {rd.entry.goal}</span>}
                         </div>
                       );
@@ -906,7 +910,7 @@ export default function Main({ session }) {
                             <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            {editingResultId !== entry.id && entry.result && <span style={{ fontSize: 13, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span>}
+                            {editingResultId !== entry.id && entry.result && (entry.result === "DNS" || entry.result === "DNF" ? <span style={{ fontSize: 12, fontWeight: 600, color: "#C53030", background: "#FFF5F5", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span> : <span style={{ fontSize: 13, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span>)}
                             {editingResultId !== entry.id && !entry.result && isMe && <span onClick={function() { startEditResult(entry); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>+ sluttid</span>}
                             {!isMe && !entry.result && <span style={{ fontSize: 11, color: "#C4C3BB" }}>✓</span>}
                           </div>
@@ -914,8 +918,10 @@ export default function Main({ session }) {
                         {editingResultId === entry.id && isMe && (
                           <div style={{ marginTop: 10 }}>
                             <TP h={resultH} m={resultM} s={resultS} onH={setResultH} onM={setResultM} onS={setResultS} label="Sluttid" />
-                            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                               <button onClick={function() { updateResult(entry.id); }} style={{ ...pill(false, true), padding: "5px 14px", fontSize: 11 }}>Lagre</button>
+                              <button onClick={function() { var r = "DNS"; supabase.from("entries").update({ result: r }).eq("id", entry.id); setEntries(function(prev) { return prev.map(function(e) { return e.id === entry.id ? { ...e, result: r } : e; }); }); setEditingResultId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>DNS</button>
+                              <button onClick={function() { var r = "DNF"; supabase.from("entries").update({ result: r }).eq("id", entry.id); setEntries(function(prev) { return prev.map(function(e) { return e.id === entry.id ? { ...e, result: r } : e; }); }); setEditingResultId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>DNF</button>
                               <button onClick={function() { setEditingResultId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>Avbryt</button>
                             </div>
                           </div>
