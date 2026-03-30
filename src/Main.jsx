@@ -483,7 +483,7 @@ export default function Main({ session }) {
 
             {/* Hero */}
             {hero && (
-              <div onClick={function() { openRace(hero.race.id); }} style={{ background: "#2D5A3D", borderRadius: 16, padding: "28px 24px", marginBottom: 28, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(45,90,61,0.2)" }}>
+              <div onClick={function() { openRace(hero.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 28, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>{hero.isOwn ? "Neste løp" : "Neste løp fra de du følger"}</div>
