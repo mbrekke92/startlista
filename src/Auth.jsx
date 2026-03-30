@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { supabase } from "./supabase.js";
 
+const FYLKER = ["Agder", "Innlandet", "Møre og Romsdal", "Nordland", "Oslo", "Rogaland", "Troms", "Trøndelag", "Vestfold og Telemark", "Vestland", "Viken"];
+
 export default function Auth({ initialMode = "login", onBack }) {
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [city, setCity] = useState("");
+  const [fylke, setFylke] = useState("");
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,6 +19,11 @@ export default function Auth({ initialMode = "login", onBack }) {
     fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "10px 12px",
     border: "1px solid #E2E0D8", borderRadius: 8, background: "#fff",
     color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none",
+  };
+  const selectStyle = {
+    ...inputStyle, appearance: "none", WebkitAppearance: "none",
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9B8E' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")",
+    backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", paddingRight: 36,
   };
   const labelStyle = {
     fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500,
@@ -36,9 +43,9 @@ export default function Auth({ initialMode = "login", onBack }) {
     e.preventDefault();
     setError(""); setMessage("");
     if (!acceptPrivacy) { setError("Du må godta personvernerklæringen"); return; }
-    if (!firstName.trim() || !lastName.trim() || !city.trim()) { setError("Alle felt må fylles ut"); return; }
+    if (!firstName.trim() || !lastName.trim() || !fylke) { setError("Alle felt må fylles ut"); return; }
     setLoading(true);
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { first_name: firstName.trim(), last_name: lastName.trim(), city: city.trim() } } });
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { first_name: firstName.trim(), last_name: lastName.trim(), city: fylke } } });
     if (signUpError) { setError(signUpError.message); setLoading(false); return; }
     setLoading(false);
     if (!data.session) setMode("confirm");
@@ -79,7 +86,7 @@ export default function Auth({ initialMode = "login", onBack }) {
     <div style={{ minHeight: "100vh", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ maxWidth: 380, width: "100%", padding: "0 20px", fontFamily: "'DM Sans', sans-serif" }}>
         {onBack && (
-          <div onClick={onBack} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 24, textAlign: "center" }}>← Tilbake til forsiden</div>
+          <div onClick={onBack} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 24, textAlign: "center", fontWeight: 500 }}>← Tilbake til forsiden</div>
         )}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 24, fontWeight: 600, color: "#2D5A3D", marginBottom: 4 }}>startlista</div>
@@ -102,8 +109,11 @@ export default function Auth({ initialMode = "login", onBack }) {
                 </div>
               </div>
               <div>
-                <label style={labelStyle}>By</label>
-                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="F.eks. Oslo" style={inputStyle} required />
+                <label style={labelStyle}>Fylke</label>
+                <select value={fylke} onChange={(e) => setFylke(e.target.value)} style={selectStyle} required>
+                  <option value="">Velg fylke</option>
+                  {FYLKER.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
               </div>
             </>
           )}
