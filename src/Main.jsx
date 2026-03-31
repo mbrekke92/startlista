@@ -146,7 +146,21 @@ export default function Main({ session }) {
   const [resultM, setResultM] = useState(0);
   const [resultS, setResultS] = useState(0);
   const carouselRef = useRef(null);
+  const touchStartX = useRef(null);
   const userId = session.user.id;
+
+  // Swipe back gesture
+  var handleTouchStart = function(e) { touchStartX.current = e.touches[0].clientX; };
+  var handleTouchEnd = function(e) {
+    if (touchStartX.current === null) return;
+    var diff = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (diff > 100 && touchStartX.current !== null) return; // ignore small swipes
+    if (diff > 100) {
+      if (view === "race" || (view === "profile" && selectedProfile && selectedProfile.id !== userId)) goRaces();
+      else if (view === "profile" && selectedProfile && selectedProfile.id === userId) goRaces();
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -362,7 +376,7 @@ export default function Main({ session }) {
     return shared[0] || null;
   };
 
-  var iS = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "12px 14px", border: "1px solid #E2E0D8", borderRadius: 10, background: "#fff", color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none" };
+  var iS = { fontFamily: "'DM Sans', sans-serif", fontSize: 16, padding: "14px 16px", border: "1px solid #E2E0D8", borderRadius: 12, background: "#fff", color: "#1A1A1A", width: "100%", boxSizing: "border-box", outline: "none", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" };
   var lS = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", marginBottom: 5, display: "block" };
   var sT = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: "#C4C3BB", marginBottom: 16 };
   var pill = function(active, green) { return { fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, padding: "7px 18px", borderRadius: 20, border: active ? "1px solid #E2E0D8" : "1px solid " + (green ? "#2D5A3D" : "#E2E0D8"), background: active ? "transparent" : (green ? "#2D5A3D" : "transparent"), color: active ? "#9B9B8E" : (green ? "#fff" : "#9B9B8E"), cursor: "pointer", whiteSpace: "nowrap" }; };
@@ -464,7 +478,7 @@ export default function Main({ session }) {
         </div>
       </header>
 
-      <main key={fadeKey} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
+      <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
         <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"}</style>
 
         {/* ═══ LØP ═══ */}
@@ -509,7 +523,7 @@ export default function Main({ session }) {
             {/* Following races */}
             {(function() {
               var relevant = races.filter(function(r) { return r.date >= today && entries.some(function(e) { return e.race_id === r.id && (e.user_id === userId || followingIds.includes(e.user_id)); }); }).filter(function(r) { return !hero || r.id !== hero.race.id; });
-              var visible = showAllRaces ? relevant : relevant.slice(0, 10);
+              var visible = showAllRaces ? relevant : relevant.slice(0, 5);
               if (!relevant.length) return null;
               return (
                 <div>
@@ -523,7 +537,7 @@ export default function Main({ session }) {
                       </div>
                     );
                   })}</div>
-                  {relevant.length > 10 && !showAllRaces && <div style={{ textAlign: "center", paddingTop: 12 }}><button onClick={function() { setShowAllRaces(true); }} style={{ ...pill(false, false), fontSize: 13 }}>Se alle løp ({relevant.length})</button></div>}
+                  {relevant.length > 5 && !showAllRaces && <div style={{ textAlign: "center", paddingTop: 12 }}><button onClick={function() { setShowAllRaces(true); }} style={{ ...pill(false, false), fontSize: 13 }}>Se alle løp ({relevant.length})</button></div>}
                 </div>
               );
             })()}
@@ -611,7 +625,10 @@ export default function Main({ session }) {
                       </div>
                     );
                   })}
-                  <div style={{ textAlign: "center", paddingTop: 12 }}><span style={{ fontSize: 12, color: "#C4C3BB" }}>Bruk søkefeltet for å finne flere løp</span></div>
+                  <div style={{ paddingTop: 16 }}>
+                    <input type="text" placeholder="Søk etter flere løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
+                    <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
+                  </div>
                 </div>
               );
             })()}
@@ -1045,7 +1062,7 @@ export default function Main({ session }) {
                           <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal ? " · Mål: " + entry.goal : ""}</div>
                         </div>
                       </div>
-                      {!isMe && <span style={{ color: "#D4D3CC", fontSize: 16, cursor: "pointer" }} onClick={function() { openProfile(p); }}>›</span>}
+                      {!isMe && (followingIds.includes(p.id) ? <span style={{ fontSize: 11, color: "#9B9B8E", padding: "4px 12px", borderRadius: 14, border: "1px solid #E2E0D8", whiteSpace: "nowrap" }}>Følger</span> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#2D5A3D", padding: "4px 12px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
                     </div>
                   );
                 })}</div>
