@@ -358,10 +358,21 @@ export default function Main({ session }) {
       return a.date.localeCompare(b.date);
     });
     var race = myRaces.length > 0 ? myRaces[0] : (followingRaces.length > 0 ? followingRaces[0] : null);
-    if (!race) return null;
+    if (!race) {
+      // Priority 3: Most popular upcoming race (for new users)
+      var popular = races.filter(function(r) { return r.date >= today; }).map(function(r) {
+        return { race: r, count: entries.filter(function(e) { return e.race_id === r.id; }).length };
+      }).filter(function(r) { return r.count > 0; }).sort(function(a, b) { return b.count - a.count; });
+      if (popular.length > 0) {
+        var popRace = popular[0].race;
+        var popPs = entries.filter(function(e) { return e.race_id === popRace.id; }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
+        return { race: popRace, participants: popPs, days: daysUntil(popRace.date), isOwn: false, isPopular: true };
+      }
+      return null;
+    }
     var ps = entries.filter(function(e) { return e.race_id === race.id; }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
     var isOwn = myRaces.length > 0 && myRaces[0].id === race.id;
-    return { race: race, participants: ps, days: daysUntil(race.date), isOwn: isOwn };
+    return { race: race, participants: ps, days: daysUntil(race.date), isOwn: isOwn, isPopular: false };
   };
 
   var getNextSharedRace = function() {
@@ -503,7 +514,7 @@ export default function Main({ session }) {
               <div onClick={function() { openRace(hero.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 28, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>{hero.isOwn ? "Neste løp" : "Neste løp fra de du følger"}</div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>{hero.isOwn ? "Neste løp" : hero.isPopular ? "Populært løp" : "Neste løp fra de du følger"}</div>
                     <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px" }}>{hero.race.name}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -625,7 +636,7 @@ export default function Main({ session }) {
                       </div>
                     );
                   })}
-                  <div style={{ paddingTop: 16 }}>
+                  <div style={{ paddingTop: 16, position: "relative" }}>
                     <input type="text" placeholder="Søk etter flere løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
                     <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
                   </div>
@@ -716,7 +727,7 @@ export default function Main({ session }) {
               {selectedProfile.id === userId && (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button onClick={function() { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
-                  <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Inviter en løpevenn →</span>
+                  <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Inviter en løpevenn →</span>
                 </div>
               )}
             </div>
