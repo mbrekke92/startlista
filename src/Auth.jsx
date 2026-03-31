@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "./supabase.js";
 
-const FYLKER = ["Agder", "Innlandet", "Møre og Romsdal", "Nordland", "Oslo", "Rogaland", "Troms", "Trøndelag", "Vestfold og Telemark", "Vestland", "Viken"];
+const FYLKER = ["Agder", "Akershus", "Buskerud", "Finnmark", "Innlandet", "Møre og Romsdal", "Nordland", "Oslo", "Rogaland", "Telemark", "Troms", "Trøndelag", "Vestfold", "Vestland", "Østfold"];
 
 export default function Auth({ initialMode = "login", onBack }) {
   const [mode, setMode] = useState(initialMode);
