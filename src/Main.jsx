@@ -200,6 +200,7 @@ export default function Main({ session }) {
   var nav = function(fn) { setFadeKey(function(k) { return k + 1; }); fn(); };
   var goalStr = function(h, m, s) { return (h === 0 && m === 0 && s === 0) ? "" : formatGoalTime(h, m, s); };
   var raceLocation = function(race) { return race.location + (race.country && race.country !== "Norge" ? ", " + race.country : ""); };
+  var displayDistance = function(dist) { if (!dist) return ""; if (dist === "21.0975 km") return "Halvmaraton"; if (dist === "42.195 km") return "Maraton"; return dist; };
 
   var saveFylke = async function() {
     if (!selectedFylke) return;
@@ -449,7 +450,7 @@ export default function Main({ session }) {
         </div>}
         {mr.length > 0 && <div>
           <div style={{ padding: "10px 14px 6px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#C4C3BB" }}>Løp</div>
-          {mr.map(function(race) { return <div key={race.id} onClick={function() { onRace(race.id); setSearch(""); }} style={{ padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid #F0EFE9" }}><div style={{ fontWeight: 600, fontSize: 14 }}>{race.name}</div><div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>; })}
+          {mr.map(function(race) { return <div key={race.id} onClick={function() { onRace(race.id); setSearch(""); }} style={{ padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid #F0EFE9" }}><div style={{ fontWeight: 600, fontSize: 14 }}>{race.name}</div><div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>; })}
         </div>}
         <div onClick={function() { setSearch(""); openProfile(profile); setTimeout(function() { setShowAddRace(true); setManualMode(true); }, 100); }} style={{ padding: "10px 14px", borderTop: "1px solid #F0EFE9", fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Finner ikke løpet? Legg til manuelt →</div>
       </div>
@@ -522,7 +523,7 @@ export default function Main({ session }) {
                     <div style={{ fontSize: 12, opacity: 0.7 }}>{hero.days === 1 ? "dag" : "dager"}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>{raceLocation(hero.race)} · {hero.race.distance} · {formatDate(hero.race.date)}</div>
+                <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>{raceLocation(hero.race)} · {hero.displayDistance(race.distance)} · {formatDate(hero.race.date)}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ display: "flex" }}>{followingPs.slice(0, 5).map(function(p, i) { return <div key={p.id} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: i > 0 ? -8 : 0, border: "2px solid rgba(26,26,26,0.5)" }}>{getInitials(p.first_name, p.last_name)}</div>; })}</div>
                   <span style={{ fontSize: 12, opacity: 0.7 }}>{totalCount} påmeldt{followingPs.length > 0 ? " · " + followingPs.length + " du følger" : ""}</span>
@@ -543,7 +544,7 @@ export default function Main({ session }) {
                     var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
                       <div key={race.id} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>
+                        <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>{ps.length > 0 && <AvStack participants={ps} />}<span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span></div>
                       </div>
                     );
@@ -631,7 +632,7 @@ export default function Main({ session }) {
                     var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
                       <div key={race.id} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>
+                        <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>{ps.length > 0 && <AvStack participants={ps} />}<span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span></div>
                       </div>
                     );
@@ -658,7 +659,7 @@ export default function Main({ session }) {
               <div onClick={function() { openRace(nextShared.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "24px 22px", marginBottom: 24, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>Om {nextShared.days} {nextShared.days === 1 ? "dag" : "dager"} løper du og {nextShared.friends[0] ? fullName(nextShared.friends[0]) : ""}{nextShared.friends.length > 1 ? " +" + (nextShared.friends.length - 1) : ""}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px" }}>{nextShared.race.name}</div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{raceLocation(nextShared.race)} · {nextShared.race.distance}</div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{raceLocation(nextShared.race)} · {nextShared.displayDistance(race.distance)}</div>
               </div>
             )}
 
@@ -681,7 +682,7 @@ export default function Main({ session }) {
                     return (
                       <div key={group.race.id} style={{ borderBottom: "1px solid #EDECE6" }}>
                         <div onClick={function() { openRace(group.race.id); }} style={{ padding: "16px 0", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{group.race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(group.race)} · {group.race.distance} · {formatDate(group.race.date)}</div></div>
+                          <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{group.race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(group.race)} · {group.displayDistance(race.distance)} · {formatDate(group.race.date)}</div></div>
                           <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
                         </div>
                         <div style={{ paddingBottom: 12 }}>{group.runners.map(function(r) {
@@ -745,7 +746,7 @@ export default function Main({ session }) {
                     <div>
                       <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 4 }}>Neste løp</div>
                       <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 6 }}>{race.name}</div>
-                      <div style={{ fontSize: 12, opacity: 0.7 }}>{raceLocation(race)} · {race.distance}</div>
+                      <div style={{ fontSize: 12, opacity: 0.7 }}>{raceLocation(race)} · {displayDistance(race.distance)}</div>
                       {entry.goal && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>Mål: {entry.goal}</div>}
                     </div>
                     <div style={{ textAlign: "right", marginLeft: 16 }}>
@@ -817,7 +818,7 @@ export default function Main({ session }) {
                       <div style={{ marginTop: 8 }}>
                         {filteredRaces.length === 0 ? <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen treff</div> : filteredRaces.map(function(race) {
                           var already = myEntries.some(function(e) { return e.race_id === race.id; });
-                          return <div key={race.id} onClick={function() { if (!already) setSelectedExisting(race); }} style={{ padding: "12px 0", borderBottom: "1px solid #F0EFE9", cursor: already ? "default" : "pointer", opacity: already ? 0.35 : 1 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{race.name} {already && <span style={{ fontWeight: 400, fontSize: 11, color: "#C4C3BB" }}>(allerede lagt til)</span>}</div><div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div></div>;
+                          return <div key={race.id} onClick={function() { if (!already) setSelectedExisting(race); }} style={{ padding: "12px 0", borderBottom: "1px solid #F0EFE9", cursor: already ? "default" : "pointer", opacity: already ? 0.35 : 1 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{race.name} {already && <span style={{ fontWeight: 400, fontSize: 11, color: "#C4C3BB" }}>(allerede lagt til)</span>}</div><div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>;
                         })}
                       </div>
                     )}
@@ -830,7 +831,7 @@ export default function Main({ session }) {
                 {selectedExisting && (
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{selectedExisting.name}</div>
-                    <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 14 }}>{raceLocation(selectedExisting)} · {selectedExisting.distance} · {formatDate(selectedExisting.date)}</div>
+                    <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 14 }}>{raceLocation(selectedExisting)} · {displayDistance(selectedExisting.distance)} · {formatDate(selectedExisting.date)}</div>
                     <TP h={goalForExisting.h} m={goalForExisting.m} s={goalForExisting.s} onH={function(v) { setGoalForExisting({ ...goalForExisting, h: v }); }} onM={function(v) { setGoalForExisting({ ...goalForExisting, m: v }); }} onS={function(v) { setGoalForExisting({ ...goalForExisting, s: v }); }} />
                     <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                       <button onClick={addExistingRace} style={{ ...pill(false, true), fontSize: 13, padding: "9px 24px" }}>Legg til</button>
@@ -860,14 +861,14 @@ export default function Main({ session }) {
                         <div style={{ flex: 1 }}><label style={lS}>Dato *</label><input type="date" value={newRace.date} onChange={function(e) { setNewRace({ ...newRace, date: e.target.value }); }} style={iS} /></div>
                         <div style={{ flex: 1 }}>
                           <label style={lS}>Distanse *</label>
-                          <select value={["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) ? newRace.distance : "annet"} onChange={function(e) { if (e.target.value === "annet") setNewRace({ ...newRace, distance: "" }); else setNewRace({ ...newRace, distance: e.target.value }); }} style={selS}>
+                          <select value={["5 km", "10 km", "Halvmaraton", "Maraton"].includes(newRace.distance) ? newRace.distance : "annet"} onChange={function(e) { if (e.target.value === "annet") setNewRace({ ...newRace, distance: "" }); else setNewRace({ ...newRace, distance: e.target.value }); }} style={selS}>
                             <option value="annet">Annen distanse</option>
                             <option value="5 km">5 km</option>
                             <option value="10 km">10 km</option>
-                            <option value="21.0975 km">Halvmaraton</option>
-                            <option value="42.195 km">Maraton</option>
+                            <option value="Halvmaraton">Halvmaraton</option>
+                            <option value="Maraton">Maraton</option>
                           </select>
-                          {!["5 km", "10 km", "21.0975 km", "42.195 km"].includes(newRace.distance) && <input type="text" placeholder="F.eks. 15 km" value={newRace.distance} onChange={function(e) { setNewRace({ ...newRace, distance: e.target.value }); }} style={{ ...iS, marginTop: 8 }} autoFocus />}
+                          {!["5 km", "10 km", "Halvmaraton", "Maraton"].includes(newRace.distance) && <input type="text" placeholder="F.eks. 15 km" value={newRace.distance} onChange={function(e) { setNewRace({ ...newRace, distance: e.target.value }); }} style={{ ...iS, marginTop: 8 }} autoFocus />}
                         </div>
                       </div>
                       <TP h={newGoalH} m={newGoalM} s={newGoalS} onH={setNewGoalH} onM={setNewGoalM} onS={setNewGoalS} />
@@ -896,7 +897,7 @@ export default function Main({ session }) {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div onClick={function() { openRace(race.id); }} style={{ cursor: "pointer" }}>
                           <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div>
-                          <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                          <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {editingGoalEntryId !== entry.id && entry.goal && <span onClick={function() { if (isMe) startEditGoal(entry); }} style={{ fontSize: 12, fontWeight: 500, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 10px", borderRadius: 12, cursor: isMe ? "pointer" : "default" }}>{entry.goal}</span>}
@@ -935,7 +936,7 @@ export default function Main({ session }) {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div onClick={function() { openRace(race.id); }} style={{ cursor: "pointer" }}>
                             <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div>
-                            <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {race.distance} · {formatDate(race.date)}</div>
+                            <div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {editingResultId !== entry.id && entry.result && (entry.result === "DNS" || entry.result === "DNF" ? <span style={{ fontSize: 12, fontWeight: 600, color: "#C53030", background: "#FFF5F5", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span> : <span style={{ fontSize: 13, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span>)}
@@ -1010,7 +1011,7 @@ export default function Main({ session }) {
           <div style={{ padding: "36px 0 60px" }}>
             <div onClick={goRaces} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
             <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.5px" }}>{selectedRace.name}</h1>
-            <div style={{ fontSize: 14, color: "#9B9B8E", marginBottom: 8 }}>{raceLocation(selectedRace)} · {selectedRace.distance} · {formatDate(selectedRace.date)}</div>
+            <div style={{ fontSize: 14, color: "#9B9B8E", marginBottom: 8 }}>{raceLocation(selectedRace)} · {displayDistance(selectedRace.distance)} · {formatDate(selectedRace.date)}</div>
             {selectedRace.user_created && <div style={{ fontSize: 11, color: "#C4C3BB", marginBottom: 8 }}>Lagt til av bruker — verifiser dato hos arrangør</div>}
             <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 20 }}>{entries.filter(function(e) { return e.race_id === selectedRace.id; }).length} løpere registrert</div>
 
