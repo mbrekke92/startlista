@@ -523,7 +523,7 @@ export default function Main({ session }) {
                     <div style={{ fontSize: 12, opacity: 0.7 }}>{hero.days === 1 ? "dag" : "dager"}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>{raceLocation(hero.race)} · {hero.displayDistance(race.distance)} · {formatDate(hero.race.date)}</div>
+                <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>{raceLocation(hero.race)} · {displayDistance(hero.race.distance)} · {formatDate(hero.race.date)}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ display: "flex" }}>{followingPs.slice(0, 5).map(function(p, i) { return <div key={p.id} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: i > 0 ? -8 : 0, border: "2px solid rgba(26,26,26,0.5)" }}>{getInitials(p.first_name, p.last_name)}</div>; })}</div>
                   <span style={{ fontSize: 12, opacity: 0.7 }}>{totalCount} påmeldt{followingPs.length > 0 ? " · " + followingPs.length + " du følger" : ""}</span>
@@ -659,7 +659,7 @@ export default function Main({ session }) {
               <div onClick={function() { openRace(nextShared.race.id); }} style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #2D5A3D 100%)", borderRadius: 16, padding: "24px 22px", marginBottom: 24, cursor: "pointer", color: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
                 <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>Om {nextShared.days} {nextShared.days === 1 ? "dag" : "dager"} løper du og {nextShared.friends[0] ? fullName(nextShared.friends[0]) : ""}{nextShared.friends.length > 1 ? " +" + (nextShared.friends.length - 1) : ""}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px" }}>{nextShared.race.name}</div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{raceLocation(nextShared.race)} · {nextShared.displayDistance(race.distance)}</div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{raceLocation(nextShared.race)} · {displayDistance(nextShared.race.distance)}</div>
               </div>
             )}
 
@@ -682,7 +682,7 @@ export default function Main({ session }) {
                     return (
                       <div key={group.race.id} style={{ borderBottom: "1px solid #EDECE6" }}>
                         <div onClick={function() { openRace(group.race.id); }} style={{ padding: "16px 0", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{group.race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(group.race)} · {group.displayDistance(race.distance)} · {formatDate(group.race.date)}</div></div>
+                          <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{group.race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(group.race)} · {displayDistance(group.race.distance)} · {formatDate(group.race.date)}</div></div>
                           <span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span>
                         </div>
                         <div style={{ paddingBottom: 12 }}>{group.runners.map(function(r) {
