@@ -425,7 +425,7 @@ export default function Main({ session }) {
   };
 
   var ShareRace = function({ race }) {
-    return <span onClick={function() { var url = "https://startlista.no"; var text = "Skal du løpe " + race.name + "? Se hvem som er påmeldt og har samme målsetning som deg på startlista.no"; if (navigator.share) { navigator.share({ title: race.name, text: text, url: url }); } else { navigator.clipboard.writeText(text); alert("Tekst kopiert!"); } }} style={{ fontSize: 12, color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Del løpet →</span>;
+    return <span onClick={function() { var url = "https://startlista.no"; var text = "Skal du løpe " + race.name + "? Se hvem som er påmeldt og har samme målsetning som deg på startlista.no"; if (navigator.share) { navigator.share({ title: race.name, text: text, url: url }); } else { navigator.clipboard.writeText(text); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Tips en løpevenn →</span>;
   };
 
   var SearchDropdown = function({ search, setSearch, onProfile, onRace }) {
