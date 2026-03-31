@@ -21,7 +21,7 @@ const capitalize = (str) => {
   }).join(" ");
 };
 
-const FYLKER = ["Agder","Innlandet","Møre og Romsdal","Nordland","Oslo","Rogaland","Troms","Trøndelag","Vestfold og Telemark","Vestland","Viken"];
+const FYLKER = ["Agder","Akershus","Buskerud","Finnmark","Innlandet","Møre og Romsdal","Nordland","Oslo","Rogaland","Telemark","Troms","Trøndelag","Vestfold","Vestland","Østfold"];
 
 const parseGoalSeconds = (goal) => {
   if (!goal) return null;
@@ -528,6 +528,38 @@ export default function Main({ session }) {
               );
             })()}
 
+            {/* Populært nå */}
+            {(function() {
+              var upcomingRaces = races.filter(function(r) { return r.date >= today; });
+              var ranked = upcomingRaces.map(function(race) {
+                var total = entries.filter(function(e) { return e.race_id === race.id; }).length;
+                return { race: race, total: total };
+              }).filter(function(r) { return r.total >= 2; }).sort(function(a, b) { return b.total - a.total; }).slice(0, 3);
+              if (!ranked.length) return null;
+              return (
+                <div style={{ marginTop: 40 }}>
+                  <h2 style={sT}>Populært nå</h2>
+                  {ranked.map(function(item, i) {
+                    return (
+                      <div key={item.race.id} onClick={function() { openRace(item.race.id); }} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 10, background: i === 0 ? "#9A7B4F" : i === 1 ? "#6B7280" : "#8B6914", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px" }}>{item.race.name}</div>
+                            <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)}</div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#2D5A3D" }}>{item.total}</div>
+                          <div style={{ fontSize: 10, color: "#9B9B8E" }}>påmeldt</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             {/* Carousel */}
             {(function() {
               var sug = getRaceSuggestions();
@@ -558,38 +590,6 @@ export default function Main({ session }) {
                       );
                     })}
                   </div>
-                </div>
-              );
-            })()}
-
-            {/* Populært nå */}
-            {(function() {
-              var upcomingRaces = races.filter(function(r) { return r.date >= today; });
-              var ranked = upcomingRaces.map(function(race) {
-                var total = entries.filter(function(e) { return e.race_id === race.id; }).length;
-                return { race: race, total: total };
-              }).filter(function(r) { return r.total >= 2; }).sort(function(a, b) { return b.total - a.total; }).slice(0, 3);
-              if (!ranked.length) return null;
-              return (
-                <div style={{ marginTop: 40 }}>
-                  <h2 style={sT}>Populært nå</h2>
-                  {ranked.map(function(item, i) {
-                    return (
-                      <div key={item.race.id} onClick={function() { openRace(item.race.id); }} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: 10, background: i === 0 ? "#9A7B4F" : i === 1 ? "#6B7280" : "#8B6914", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px" }}>{item.race.name}</div>
-                            <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)}</div>
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "#2D5A3D" }}>{item.total}</div>
-                          <div style={{ fontSize: 10, color: "#9B9B8E" }}>påmeldt</div>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               );
             })()}
@@ -671,7 +671,7 @@ export default function Main({ session }) {
         {/* ═══ PROFILE ═══ */}
         {view === "profile" && selectedProfile && (
           <div style={{ padding: "36px 0 60px" }}>
-            <div onClick={goRaces} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 28, fontWeight: 500 }}>← Tilbake</div>
+            <div onClick={goRaces} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
 
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
@@ -980,7 +980,7 @@ export default function Main({ session }) {
         {/* ═══ RACE DETAIL ═══ */}
         {view === "race" && selectedRace && (
           <div style={{ padding: "36px 0 60px" }}>
-            <div onClick={goRaces} style={{ fontSize: 13, color: "#9B9B8E", cursor: "pointer", marginBottom: 28, fontWeight: 500 }}>← Tilbake</div>
+            <div onClick={goRaces} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
             <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.5px" }}>{selectedRace.name}</h1>
             <div style={{ fontSize: 14, color: "#9B9B8E", marginBottom: 8 }}>{raceLocation(selectedRace)} · {selectedRace.distance} · {formatDate(selectedRace.date)}</div>
             {selectedRace.user_created && <div style={{ fontSize: 11, color: "#C4C3BB", marginBottom: 8 }}>Lagt til av bruker — verifiser dato hos arrangør</div>}
