@@ -80,18 +80,45 @@ const getTempoGroups = (raceEntries, distance) => {
   var groups;
   if (d.includes("42") || d.includes("maraton")) {
     groups = [
-      { label: "Sub 3:00", min: 0, max: 10800 },
-      { label: "3:00–3:30", min: 10800, max: 12600 },
-      { label: "3:30–4:00", min: 12600, max: 14400 },
-      { label: "4:00–4:30", min: 14400, max: 16200 },
-      { label: "4:30+", min: 16200, max: 99999 }
+      { label: "Sub 2:20", min: 0, max: 8400 },
+      { label: "2:20–2:30", min: 8400, max: 9000 },
+      { label: "2:30–2:35", min: 9000, max: 9300 },
+      { label: "2:35–2:40", min: 9300, max: 9600 },
+      { label: "2:40–2:45", min: 9600, max: 9900 },
+      { label: "2:45–2:50", min: 9900, max: 10200 },
+      { label: "2:50–2:55", min: 10200, max: 10500 },
+      { label: "2:55–3:00", min: 10500, max: 10800 },
+      { label: "3:00–3:15", min: 10800, max: 11700 },
+      { label: "3:15–3:30", min: 11700, max: 12600 },
+      { label: "3:30–3:45", min: 12600, max: 13500 },
+      { label: "3:45–4:00", min: 13500, max: 14400 },
+      { label: "4:00–4:15", min: 14400, max: 15300 },
+      { label: "4:15–4:30", min: 15300, max: 16200 },
+      { label: "4:30–4:45", min: 16200, max: 17100 },
+      { label: "4:45–5:00", min: 17100, max: 18000 },
+      { label: "5:00–5:15", min: 18000, max: 18900 },
+      { label: "5:15–5:30", min: 18900, max: 19800 },
+      { label: "5:30–6:00", min: 19800, max: 21600 },
+      { label: "Over 6:00", min: 21600, max: 99999 }
     ];
   } else if (d.includes("21") || d.includes("halv")) {
     groups = [
-      { label: "Sub 1:30", min: 0, max: 5400 },
-      { label: "1:30–1:45", min: 5400, max: 6300 },
-      { label: "1:45–2:00", min: 6300, max: 7200 },
-      { label: "2:00+", min: 7200, max: 99999 }
+      { label: "Sub 1:10", min: 0, max: 4200 },
+      { label: "1:10–1:15", min: 4200, max: 4500 },
+      { label: "1:15–1:20", min: 4500, max: 4800 },
+      { label: "1:20–1:25", min: 4800, max: 5100 },
+      { label: "1:25–1:30", min: 5100, max: 5400 },
+      { label: "1:30–1:35", min: 5400, max: 5700 },
+      { label: "1:35–1:40", min: 5700, max: 6000 },
+      { label: "1:40–1:45", min: 6000, max: 6300 },
+      { label: "1:45–1:50", min: 6300, max: 6600 },
+      { label: "1:50–1:55", min: 6600, max: 6900 },
+      { label: "1:55–2:00", min: 6900, max: 7200 },
+      { label: "2:00–2:10", min: 7200, max: 7800 },
+      { label: "2:10–2:20", min: 7800, max: 8400 },
+      { label: "2:20–2:30", min: 8400, max: 9000 },
+      { label: "2:30–2:45", min: 9000, max: 9900 },
+      { label: "Over 2:45", min: 9900, max: 99999 }
     ];
   } else {
     groups = [
@@ -99,7 +126,9 @@ const getTempoGroups = (raceEntries, distance) => {
       { label: "35–40", min: 2100, max: 2400 },
       { label: "40–45", min: 2400, max: 2700 },
       { label: "45–50", min: 2700, max: 3000 },
-      { label: "50+", min: 3000, max: 99999 }
+      { label: "50–60", min: 3000, max: 3600 },
+      { label: "60–70", min: 3600, max: 4200 },
+      { label: "Over 70", min: 4200, max: 99999 }
     ];
   }
   return groups.map((g) => ({ ...g, count: withGoals.filter((e) => e.secs >= g.min && e.secs < g.max).length })).filter((g) => g.count > 0);
@@ -141,6 +170,7 @@ export default function Main({ session }) {
   const [newGoalM, setNewGoalM] = useState(0);
   const [newGoalS, setNewGoalS] = useState(0);
   const [raceSortByTime, setRaceSortByTime] = useState(false);
+  const [tempoFilter, setTempoFilter] = useState(null);
   const [editingResultId, setEditingResultId] = useState(null);
   const [resultH, setResultH] = useState(0);
   const [resultM, setResultM] = useState(0);
@@ -313,7 +343,7 @@ export default function Main({ session }) {
   var handleLogout = async function() { await supabase.auth.signOut(); };
 
   var openProfile = function(p) { nav(function() { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
-  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); }); };
+  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); }); };
   var goRaces = function() { nav(function() { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
   var goFeed = function() { nav(function() { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
 
@@ -1065,7 +1095,8 @@ export default function Main({ session }) {
                   <h2 style={{ ...sT, marginBottom: 10 }}>Tempogrupper</h2>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {tg.map(function(g) {
-                      return <div key={g.label} style={{ background: "#fff", border: "1px solid #EDECE6", borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 13, fontWeight: 600 }}>{g.label}</span><span style={{ fontSize: 11, color: "#9B9B8E" }}>{g.count} {g.count === 1 ? "løper" : "løpere"}</span></div>;
+                      var isActive = tempoFilter && tempoFilter.label === g.label;
+                      return <div key={g.label} onClick={function() { setTempoFilter(isActive ? null : g); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", transition: "all 0.15s ease" }}><span style={{ fontSize: 13, fontWeight: 600, color: isActive ? "#fff" : "#1A1A1A" }}>{g.label}</span><span style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E" }}>{g.count} {g.count === 1 ? "løper" : "løpere"}</span></div>;
                     })}
                   </div>
                 </div>
@@ -1080,6 +1111,11 @@ export default function Main({ session }) {
             {(function() {
               var re = entries.filter(function(e) { return e.race_id === selectedRace.id; });
               if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB" }}>Ingen registrerte løpere ennå</div>;
+              // Apply tempo filter
+              if (tempoFilter) {
+                re = re.filter(function(e) { var secs = parseGoalSeconds(e.goal); return secs && secs >= tempoFilter.min && secs < tempoFilter.max; });
+                if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere i denne tempogruppen</div>;
+              }
               var sorted;
               if (raceSortByTime) {
                 sorted = [...re].sort(function(a, b) { var sa = parseGoalSeconds(a.goal); var sb = parseGoalSeconds(b.goal); if (sa && sb) return sa - sb; if (sa) return -1; if (sb) return 1; return 0; });
