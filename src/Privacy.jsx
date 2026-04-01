@@ -17,13 +17,13 @@ export default function Privacy({ onBack }) {
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "48px 24px 80px" }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 32, margin: "0 0 32px" }}>Personvernerklæring</h1>
-        <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 32 }}>Sist oppdatert: mars 2026</div>
+        <div style={{ fontSize: 12, color: "#C4C3BB", marginBottom: 32 }}>Sist oppdatert: april 2026</div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Ansvarlig</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Martin Brekke er ansvarlig for behandlingen av personopplysninger på startlista.
+              Martin Brekke er ansvarlig for behandlingen av personopplysninger på startlista.no.
               Ved spørsmål om personvern kan du kontakte oss på: martin.brekke@hotmail.com
             </p>
           </section>
@@ -31,42 +31,56 @@ export default function Privacy({ onBack }) {
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Hva vi lagrer</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Når du oppretter en profil på startlista, lagrer vi fornavn og etternavn, e-postadresse (brukes kun til innlogging), by/sted, løp du legger inn på din terminliste (løpsnavn, dato, distanse, målsetning), og hvem du følger.
+              Når du oppretter en profil på startlista.no, lagrer vi fornavn og etternavn, e-postadresse (brukes kun til innlogging og kontobekreftelse), fylke, løp du legger inn på din terminliste (løpsnavn, dato, distanse, målsetning og eventuell sluttid), og hvem du følger.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Hvorfor vi lagrer det</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Vi lagrer disse opplysningene for å la deg opprette og vedlikeholde din personlige løpsprofil, vise din terminliste til andre brukere på plattformen, og la deg følge andre løperes planer.
+              Vi lagrer disse opplysningene for å la deg opprette og vedlikeholde din personlige løpsprofil, vise din terminliste til andre innloggede brukere på plattformen, og la deg følge andre løperes planer. Behandlingsgrunnlaget er samtykke som du gir ved registrering.
+            </p>
+          </section>
+
+          <section>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Samtykke</h2>
+            <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
+              Ved registrering samtykker du til at ditt navn, fylke, løp, målsetninger og sluttider er synlige for andre innloggede brukere av startlista.no. Du kan når som helst trekke tilbake ditt samtykke ved å slette kontoen din.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Synlighet</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Ditt navn, by og terminliste er synlig for andre brukere av startlista. Din e-postadresse er ikke synlig for andre og brukes kun til innlogging og kontobekreftelse.
+              Ditt navn, fylke, planlagte løp, målsetninger og sluttider er synlig for alle innloggede brukere av startlista.no. Din e-postadresse er ikke synlig for andre og brukes kun til innlogging og kontobekreftelse. Hvem du følger er kun synlig for deg selv.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Deling med tredjeparter</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Vi selger ikke, deler ikke eller gir bort dine personopplysninger til tredjeparter. Supabase benyttes som teknisk tjenesteleverandør for lagring og autentisering. Data lagres i EU.
+              Vi selger ikke, deler ikke eller gir bort dine personopplysninger til tredjeparter. Følgende tjenesteleverandører benyttes for drift av plattformen: Supabase (database og autentisering, data lagres i EU/Irland), Vercel (hosting), og Resend (utsending av bekreftelsese-post og passordtilbakestilling). Ingen av disse tjenesteleverandørene har tilgang til dine data utover det som er nødvendig for å levere tjenesten.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Informasjonskapsler</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              startlista bruker kun nødvendige informasjonskapsler for innlogging og sesjonshåndtering. Vi bruker ingen sporings- eller analyseverktøy.
+              startlista.no bruker kun nødvendige informasjonskapsler for innlogging og sesjonshåndtering. Vi bruker ingen sporings- eller analyseverktøy, og samler ikke inn data om din nettleseraktivitet.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Dine rettigheter</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Du har rett til å se hvilke opplysninger vi har lagret om deg, endre eller oppdatere dine opplysninger via din profil, og slette din konto og alle tilknyttede data permanent. Du kan slette kontoen din under Innstillinger på Min profil. For innsyn i lagrede data, kontakt oss på e-postadressen over.
+              I henhold til GDPR har du rett til å se hvilke opplysninger vi har lagret om deg, endre eller oppdatere dine opplysninger via din profil, be om at dine data overføres til en annen tjeneste (dataportabilitet), og slette din konto og alle tilknyttede data permanent. Du kan slette kontoen din under Innstillinger på Min profil. Alle dine data fjernes umiddelbart ved sletting. For innsyn i lagrede data, kontakt oss på e-postadressen over.
+            </p>
+          </section>
+
+          <section>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Lagring og sikkerhet</h2>
+            <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
+              Alle data lagres hos Supabase i EU (Irland). Kommunikasjon mellom din nettleser og våre servere er kryptert med HTTPS. Passord lagres aldri i klartekst.
             </p>
           </section>
 
@@ -80,7 +94,7 @@ export default function Privacy({ onBack }) {
       </div>
 
       <footer style={{ padding: "24px", textAlign: "center", fontSize: 11, color: "#C4C3BB", borderTop: "1px solid #EDECE6" }}>
-        <div>startlista · laget for løpere som vil finne hverandre</div>
+        <div>startlista.no · laget for løpere som vil finne hverandre</div>
       </footer>
     </div>
   );
