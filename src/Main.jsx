@@ -159,6 +159,7 @@ export default function Main({ session }) {
   const [newGoalS, setNewGoalS] = useState(0);
   const [raceSortByTime, setRaceSortByTime] = useState(false);
   const [tempoFilter, setTempoFilter] = useState(null);
+  const [fylkeFilter, setFylkeFilter] = useState(null);
   const [editingResultId, setEditingResultId] = useState(null);
   const [resultH, setResultH] = useState(0);
   const [resultM, setResultM] = useState(0);
@@ -331,7 +332,7 @@ export default function Main({ session }) {
   var handleLogout = async function() { await supabase.auth.signOut(); };
 
   var openProfile = function(p) { nav(function() { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
-  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); }); };
+  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); }); };
   var goRaces = function() { nav(function() { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
   var goFeed = function() { nav(function() { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
 
@@ -1091,6 +1092,30 @@ export default function Main({ session }) {
               );
             })()}
 
+            {/* Fylke filter - only when 20+ runners */}
+            {(function() {
+              var re = entries.filter(function(e) { return e.race_id === selectedRace.id; });
+              if (re.length < 20) return null;
+              var fylker = {};
+              re.forEach(function(e) {
+                var p = profiles.find(function(pr) { return pr.id === e.user_id; });
+                if (p && p.city) { fylker[p.city] = (fylker[p.city] || 0) + 1; }
+              });
+              var fylkeList = Object.keys(fylker).sort().map(function(f) { return { name: f, count: fylker[f] }; });
+              if (fylkeList.length < 2) return null;
+              return (
+                <div style={{ marginBottom: 20 }}>
+                  <h2 style={{ ...sT, marginBottom: 10 }}>Fylke</h2>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {fylkeList.map(function(f) {
+                      var isActive = fylkeFilter === f.name;
+                      return <div key={f.name} onClick={function() { setFylkeFilter(isActive ? null : f.name); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", transition: "all 0.15s ease" }}><span style={{ fontSize: 13, fontWeight: 600, color: isActive ? "#fff" : "#1A1A1A" }}>{f.name}</span><span style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E" }}>{f.count}</span></div>;
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h2 style={{ ...sT, marginBottom: 0 }}>Påmeldte løpere</h2>
               <button onClick={function() { setRaceSortByTime(function(v) { return !v; }); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: raceSortByTime ? "#2D5A3D" : "transparent", color: raceSortByTime ? "#fff" : "#9B9B8E", cursor: "pointer" }}>{raceSortByTime ? "Sortert etter tid" : "Sorter etter tid"}</button>
@@ -1102,8 +1127,12 @@ export default function Main({ session }) {
               // Apply tempo filter
               if (tempoFilter) {
                 re = re.filter(function(e) { var secs = parseGoalSeconds(e.goal); return secs && secs >= tempoFilter.min && secs < tempoFilter.max; });
-                if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere i denne tempogruppen</div>;
               }
+              // Apply fylke filter
+              if (fylkeFilter) {
+                re = re.filter(function(e) { var p = profiles.find(function(pr) { return pr.id === e.user_id; }); return p && p.city === fylkeFilter; });
+              }
+              if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere med valgt filter</div>;
               var sorted;
               if (raceSortByTime) {
                 sorted = [...re].sort(function(a, b) { var sa = parseGoalSeconds(a.goal); var sb = parseGoalSeconds(b.goal); if (sa && sb) return sa - sb; if (sa) return -1; if (sb) return 1; return 0; });
