@@ -1105,13 +1105,15 @@ export default function Main({ session }) {
               if (fylkeList.length < 2) return null;
               return (
                 <div style={{ marginBottom: 20 }}>
-                  <h2 style={{ ...sT, marginBottom: 10 }}>Fylke</h2>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {fylkeList.map(function(f) {
-                      var isActive = fylkeFilter === f.name;
-                      return <div key={f.name} onClick={function() { setFylkeFilter(isActive ? null : f.name); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", transition: "all 0.15s ease" }}><span style={{ fontSize: 13, fontWeight: 600, color: isActive ? "#fff" : "#1A1A1A" }}>{f.name}</span><span style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E" }}>{f.count}</span></div>;
-                    })}
-                  </div>
+                  <button onClick={function() { if (fylkeFilter) { setFylkeFilter(null); } else { setFylkeFilter("_show"); } }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: fylkeFilter && fylkeFilter !== "_show" ? "#2D5A3D" : "transparent", color: fylkeFilter && fylkeFilter !== "_show" ? "#fff" : "#9B9B8E", cursor: "pointer" }}>{fylkeFilter && fylkeFilter !== "_show" ? "Fylke: " + fylkeFilter + " ✕" : "Filtrer på fylke"}</button>
+                  {(fylkeFilter === "_show" || (fylkeFilter && fylkeFilter !== "_show")) && (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                      {fylkeList.map(function(f) {
+                        var isActive = fylkeFilter === f.name;
+                        return <div key={f.name} onClick={function() { setFylkeFilter(isActive ? null : f.name); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", transition: "all 0.15s ease" }}><span style={{ fontSize: 12, fontWeight: 600, color: isActive ? "#fff" : "#1A1A1A" }}>{f.name}</span><span style={{ fontSize: 10, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E" }}>{f.count}</span></div>;
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -1129,7 +1131,7 @@ export default function Main({ session }) {
                 re = re.filter(function(e) { var secs = parseGoalSeconds(e.goal); return secs && secs >= tempoFilter.min && secs < tempoFilter.max; });
               }
               // Apply fylke filter
-              if (fylkeFilter) {
+              if (fylkeFilter && fylkeFilter !== "_show") {
                 re = re.filter(function(e) { var p = profiles.find(function(pr) { return pr.id === e.user_id; }); return p && p.city === fylkeFilter; });
               }
               if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere med valgt filter</div>;
