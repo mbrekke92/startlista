@@ -507,6 +507,34 @@ export default function Main({ session }) {
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
             </div>
 
+            {/* Onboarding */}
+            {(function() {
+              var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
+              var hasFollowing = followingIds.length > 0;
+              if (hasRaces && hasFollowing) return null;
+              return (
+                <div style={{ background: "#fff", borderLeft: "3px solid #2D5A3D", borderRadius: 10, padding: "16px 18px", marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                  {!hasRaces && (
+                    <div onClick={function() { openProfile(profile); setTimeout(function() { setShowAddRace(true); }, 100); }} style={{ cursor: "pointer", marginBottom: hasFollowing ? 0 : 10 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", marginBottom: 3 }}>Legg til ditt første løp</div>
+                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Legg inn løpene du planlegger — da ser du hvem andre som skal løpe det samme →</div>
+                    </div>
+                  )}
+                  {hasRaces && !hasFollowing && (
+                    <div style={{ cursor: "default" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", marginBottom: 3 }}>Følg en løpevenn</div>
+                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Bruk søkefeltet over for å finne løpere du kjenner — da ser du hva de planlegger →</div>
+                    </div>
+                  )}
+                  {!hasRaces && !hasFollowing && (
+                    <div style={{ cursor: "default", marginTop: 0 }}>
+                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Bruk søkefeltet for å finne løpere du kjenner og følg dem →</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Hero */}
             {hero && (function() {
               var totalCount = entries.filter(function(e) { return e.race_id === hero.race.id; }).length;
