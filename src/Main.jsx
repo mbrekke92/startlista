@@ -75,19 +75,14 @@ const fuzzyMatch = (input, target) => {
 
 const getTempoGroups = (raceEntries, distance) => {
   const withGoals = raceEntries.map((e) => ({ ...e, secs: parseGoalSeconds(e.goal) })).filter((e) => e.secs);
-  if (withGoals.length < 2) return [];
+  if (withGoals.length < 1) return [];
   const d = (distance || "").toLowerCase();
   var groups;
   if (d.includes("42") || d.includes("maraton")) {
     groups = [
-      { label: "Sub 2:20", min: 0, max: 8400 },
-      { label: "2:20–2:30", min: 8400, max: 9000 },
-      { label: "2:30–2:35", min: 9000, max: 9300 },
-      { label: "2:35–2:40", min: 9300, max: 9600 },
-      { label: "2:40–2:45", min: 9600, max: 9900 },
-      { label: "2:45–2:50", min: 9900, max: 10200 },
-      { label: "2:50–2:55", min: 10200, max: 10500 },
-      { label: "2:55–3:00", min: 10500, max: 10800 },
+      { label: "Sub 2:30", min: 0, max: 9000 },
+      { label: "2:30–2:45", min: 9000, max: 9900 },
+      { label: "2:45–3:00", min: 9900, max: 10800 },
       { label: "3:00–3:15", min: 10800, max: 11700 },
       { label: "3:15–3:30", min: 11700, max: 12600 },
       { label: "3:30–3:45", min: 12600, max: 13500 },
@@ -96,29 +91,22 @@ const getTempoGroups = (raceEntries, distance) => {
       { label: "4:15–4:30", min: 15300, max: 16200 },
       { label: "4:30–4:45", min: 16200, max: 17100 },
       { label: "4:45–5:00", min: 17100, max: 18000 },
-      { label: "5:00–5:15", min: 18000, max: 18900 },
-      { label: "5:15–5:30", min: 18900, max: 19800 },
+      { label: "5:00–5:30", min: 18000, max: 19800 },
       { label: "5:30–6:00", min: 19800, max: 21600 },
       { label: "Over 6:00", min: 21600, max: 99999 }
     ];
   } else if (d.includes("21") || d.includes("halv")) {
     groups = [
       { label: "Sub 1:10", min: 0, max: 4200 },
-      { label: "1:10–1:15", min: 4200, max: 4500 },
-      { label: "1:15–1:20", min: 4500, max: 4800 },
-      { label: "1:20–1:25", min: 4800, max: 5100 },
-      { label: "1:25–1:30", min: 5100, max: 5400 },
-      { label: "1:30–1:35", min: 5400, max: 5700 },
-      { label: "1:35–1:40", min: 5700, max: 6000 },
-      { label: "1:40–1:45", min: 6000, max: 6300 },
-      { label: "1:45–1:50", min: 6300, max: 6600 },
-      { label: "1:50–1:55", min: 6600, max: 6900 },
-      { label: "1:55–2:00", min: 6900, max: 7200 },
+      { label: "1:10–1:20", min: 4200, max: 4800 },
+      { label: "1:20–1:30", min: 4800, max: 5400 },
+      { label: "1:30–1:40", min: 5400, max: 6000 },
+      { label: "1:40–1:50", min: 6000, max: 6600 },
+      { label: "1:50–2:00", min: 6600, max: 7200 },
       { label: "2:00–2:10", min: 7200, max: 7800 },
       { label: "2:10–2:20", min: 7800, max: 8400 },
       { label: "2:20–2:30", min: 8400, max: 9000 },
-      { label: "2:30–2:45", min: 9000, max: 9900 },
-      { label: "Over 2:45", min: 9900, max: 99999 }
+      { label: "Over 2:30", min: 9000, max: 99999 }
     ];
   } else {
     groups = [
