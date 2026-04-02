@@ -181,24 +181,32 @@ export default function Main({ session }) {
   const [tempoFilter, setTempoFilter] = useState(null);
   const [fylkeFilter, setFylkeFilter] = useState(null);
   const [etappeFilter, setEtappeFilter] = useState(null);
+  const [followMsg, setFollowMsg] = useState("");
+  const [addRaceMsg, setAddRaceMsg] = useState("");
   const [editingResultId, setEditingResultId] = useState(null);
   const [resultH, setResultH] = useState(0);
   const [resultM, setResultM] = useState(0);
   const [resultS, setResultS] = useState(0);
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
   const userId = session.user.id;
 
-  // Swipe back gesture
-  var handleTouchStart = function(e) { touchStartX.current = e.touches[0].clientX; };
+  // Swipe back gesture - only triggers on clear horizontal swipe from left edge
+  var handleTouchStart = function(e) {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
   var handleTouchEnd = function(e) {
-    if (touchStartX.current === null) return;
-    var diff = e.changedTouches[0].clientX - touchStartX.current;
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    var diffX = e.changedTouches[0].clientX - touchStartX.current;
+    var diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+    var startX = touchStartX.current;
     touchStartX.current = null;
-    if (diff > 100 && touchStartX.current !== null) return; // ignore small swipes
-    if (diff > 100) {
-      if (view === "race" || (view === "profile" && selectedProfile && selectedProfile.id !== userId)) goRaces();
-      else if (view === "profile" && selectedProfile && selectedProfile.id === userId) goRaces();
+    touchStartY.current = null;
+    // Only trigger if: started near left edge, horizontal > 120px, and horizontal > 3x vertical
+    if (startX < 40 && diffX > 120 && diffX > diffY * 3) {
+      if (view === "race" || view === "profile") goRaces();
     }
   };
 
@@ -251,19 +259,29 @@ export default function Main({ session }) {
   };
 
   var toggleFollow = async function(tid) {
+    var targetProfile = profiles.find(function(p) { return p.id === tid; });
+    var targetName = targetProfile ? targetProfile.first_name : "";
     if (followingIds.includes(tid)) {
       await supabase.from("follows").delete().eq("follower_id", userId).eq("following_id", tid);
       setFollows(function(prev) { return prev.filter(function(id) { return id !== tid; }); });
     } else {
       await supabase.from("follows").insert({ follower_id: userId, following_id: tid });
       setFollows(function(prev) { return [...prev, tid]; });
+      setFollowMsg("Du følger nå " + targetName);
+      setTimeout(function() { setFollowMsg(""); }, 2000);
     }
   };
 
   var addRaceToMyList = async function(raceId) {
     if (myEntries.some(function(e) { return e.race_id === raceId; })) return;
     var res = await supabase.from("entries").insert({ user_id: userId, race_id: raceId, goal: "", result: "" }).select().single();
-    if (res.data) setEntries(function(prev) { return [...prev, res.data]; });
+    if (res.data) {
+      setEntries(function(prev) { return [...prev, res.data]; });
+      if (myEntries.length < 2) {
+        setAddRaceMsg("Lagt til! Du kan sette tidsmål under Min profil.");
+        setTimeout(function() { setAddRaceMsg(""); }, 3500);
+      }
+    }
   };
 
   var addExistingRace = async function() {
@@ -466,7 +484,7 @@ export default function Main({ session }) {
   };
 
   var ShareRace = function({ race }) {
-    return <span onClick={function() { var url = "https://startlista.no"; var text = "Skal du løpe " + race.name + "? Se hvem som er påmeldt og har samme målsetning som deg på startlista.no"; if (navigator.share) { navigator.share({ title: race.name, text: text, url: url }); } else { navigator.clipboard.writeText(text); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Tips en løpevenn →</span>;
+    return <span onClick={function() { var url = "https://startlista.no"; var text = "Skal du løpe " + race.name + "? Sjekk hvem andre som er påmeldt på startlista.no — du kan se hvem som har samme tidsmål som deg."; if (navigator.share) { navigator.share({ title: race.name, text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Tips en løpevenn</span>;
   };
 
   var SearchDropdown = function({ search, setSearch, onProfile, onRace }) {
@@ -524,7 +542,7 @@ export default function Main({ session }) {
           <div style={{ display: "flex", gap: 18 }}>
             {[{ label: "Løp", v: "races", action: goRaces }, { label: "Oversikt", v: "feed", action: goFeed }, { label: "Min profil", v: "myprofile", action: function() { openProfile(profile); } }].map(function(tab) {
               var isA = view === tab.v || (tab.v === "myprofile" && view === "profile" && selectedProfile && selectedProfile.id === userId);
-              return <span key={tab.v} onClick={tab.action} style={{ fontSize: 13, cursor: "pointer", color: isA ? "#2D5A3D" : "#9B9B8E", fontWeight: isA ? 600 : 500 }}>{tab.label}</span>;
+              return <span key={tab.v} onClick={tab.action} style={{ fontSize: 13, cursor: "pointer", color: isA ? "#2D5A3D" : "#9B9B8E", fontWeight: isA ? 600 : 500, padding: "6px 2px" }}>{tab.label}</span>;
             })}
           </div>
         </div>
@@ -726,7 +744,6 @@ export default function Main({ session }) {
               if (!grouped.length) return <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ fontSize: 15, color: "#C4C3BB", lineHeight: 1.6 }}>Følg løpere for å se deres planer her,<br />eller legg til egne løp fra <span onClick={function() { openProfile(profile); }} style={{ color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Min profil</span>.</div></div>;
               return (
                 <div>
-                  <h2 style={sT}>Oversikt</h2>
                   {grouped.map(function(group) {
                     return (
                       <div key={group.race.id} style={{ borderBottom: "1px solid #EDECE6" }}>
@@ -777,7 +794,7 @@ export default function Main({ session }) {
               {selectedProfile.id === userId && (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button onClick={function() { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
-                  <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Inviter en løpevenn →</span>
+                  <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Inviter en løpevenn</span>
                 </div>
               )}
             </div>
@@ -1208,7 +1225,7 @@ export default function Main({ session }) {
                           <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal ? (isStafett(selectedRace.name) ? " · " + entry.goal : " · Mål: " + entry.goal) : ""}</div>
                         </div>
                       </div>
-                      {!isMe && (followingIds.includes(p.id) ? <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#9B9B8E", padding: "4px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>Følger</button> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#2D5A3D", padding: "4px 12px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
+                      {!isMe && (followingIds.includes(p.id) ? <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", padding: "6px 14px", borderRadius: 14, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>Følger</button> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#2D5A3D", padding: "6px 14px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
                     </div>
                   );
                 })}</div>
@@ -1217,6 +1234,9 @@ export default function Main({ session }) {
           </div>
         )}
       </main>
+
+      {followMsg && <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#2D5A3D", color: "#fff", fontSize: 13, fontWeight: 500, padding: "10px 24px", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 200, fontFamily: "'DM Sans', sans-serif", animation: "fadeIn 0.3s ease" }}>{followMsg}</div>}
+      {addRaceMsg && <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#2D5A3D", color: "#fff", fontSize: 13, fontWeight: 500, padding: "10px 24px", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 200, fontFamily: "'DM Sans', sans-serif", animation: "fadeIn 0.3s ease", textAlign: "center", maxWidth: "90%" }}>{addRaceMsg}</div>}
 
       <footer style={{ padding: "24px", textAlign: "center", fontSize: 11, color: "#C4C3BB", borderTop: "1px solid #EDECE6" }}>
         <div>startlista.no · laget for løpere som vil finne hverandre</div>
