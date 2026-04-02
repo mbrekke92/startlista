@@ -867,7 +867,8 @@ export default function Main({ session }) {
                           <span style={{ fontSize: 13, fontWeight: 600, color: rd.past ? "rgba(255,255,255,0.4)" : "#fff" }}>{rd.race.name}</span>
                           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
                           {rd.entry.result && (rd.entry.result === "DNS" || rd.entry.result === "DNF" ? <span style={{ fontSize: 10, fontWeight: 600, color: "#ff6b6b", background: "rgba(255,107,107,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span> : <span style={{ fontSize: 10, fontWeight: 600, color: "#4ADE80", background: "rgba(74,222,128,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>)}
-                          {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>Mål: {rd.entry.goal}</span>}
+                          {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>{isStafett(rd.race.name) ? rd.entry.goal : "Mål: " + rd.entry.goal}</span>}
+                          {!rd.entry.result && !rd.entry.goal && !rd.past && selectedProfile.id === userId && <span onClick={function(e) { e.stopPropagation(); var entry = entries.find(function(en) { return en.id === rd.entry.id; }); if (entry) startEditGoal(entry); }} style={{ fontSize: 10, color: "#4ADE80", marginLeft: "auto", cursor: "pointer" }}>{isStafett(rd.race.name) ? "+ etappe" : "+ mål"}</span>}
                         </div>
                       );
                     })}
