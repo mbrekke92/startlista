@@ -868,7 +868,7 @@ export default function Main({ session }) {
                           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{rd.race.date.split("-")[2]}. {months[rd.month]}</span>
                           {rd.entry.result && (rd.entry.result === "DNS" || rd.entry.result === "DNF" ? <span style={{ fontSize: 10, fontWeight: 600, color: "#ff6b6b", background: "rgba(255,107,107,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span> : <span style={{ fontSize: 10, fontWeight: 600, color: "#4ADE80", background: "rgba(74,222,128,0.15)", padding: "2px 8px", borderRadius: 6, marginLeft: "auto" }}>{rd.entry.result}</span>)}
                           {!rd.entry.result && rd.entry.goal && !rd.past && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>{isStafett(rd.race.name) ? rd.entry.goal : "Mål: " + rd.entry.goal}</span>}
-                          {!rd.entry.result && !rd.entry.goal && !rd.past && selectedProfile.id === userId && <span onClick={function(e) { e.stopPropagation(); var entry = entries.find(function(en) { return en.id === rd.entry.id; }); if (entry) startEditGoal(entry); }} style={{ fontSize: 10, color: "#4ADE80", marginLeft: "auto", cursor: "pointer" }}>{isStafett(rd.race.name) ? "+ etappe" : "+ mål"}</span>}
+                          {!rd.entry.result && !rd.entry.goal && !rd.past && selectedProfile.id === userId && <span onClick={function(e) { e.stopPropagation(); var matchEntry = entries.find(function(en) { return en.user_id === userId && en.race_id === rd.race.id; }); if (matchEntry) { startEditGoal(matchEntry); setTimeout(function() { var el = document.getElementById("entry-" + matchEntry.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 100); } }} style={{ fontSize: 10, color: "#4ADE80", marginLeft: "auto", cursor: "pointer" }}>{isStafett(rd.race.name) ? "+ etappe" : "+ mål"}</span>}
                         </div>
                       );
                     })}
@@ -962,7 +962,7 @@ export default function Main({ session }) {
                   var race = races.find(function(r) { return r.id === entry.race_id; });
                   if (!race) return null;
                   return (
-                    <div key={entry.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6" }}>
+                    <div key={entry.id} id={"entry-" + entry.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div onClick={function() { openRace(race.id); }} style={{ cursor: "pointer" }}>
                           <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div>
