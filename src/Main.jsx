@@ -977,7 +977,7 @@ export default function Main({ session }) {
                           {isStafett(race.name) ? (
                             <div>
                               <label style={lS}>Velg etappe</label>
-                              <select value={entry.goal || ""} onChange={function(e) { var val = e.target.value; supabase.from("entries").update({ goal: val }).eq("id", entry.id); setEntries(function(prev) { return prev.map(function(en) { return en.id === entry.id ? { ...en, goal: val } : en; }); }); setEditingGoalEntryId(null); }} style={selS}>
+                              <select value={entry.goal || ""} onChange={async function(e) { var val = e.target.value; var res = await supabase.from("entries").update({ goal: val }).eq("id", entry.id); if (res.error) { console.error("Etappe save error:", res.error); alert("Kunne ikke lagre: " + res.error.message); } else { setEntries(function(prev) { return prev.map(function(en) { return en.id === entry.id ? { ...en, goal: val } : en; }); }); } setEditingGoalEntryId(null); }} style={selS}>
                                 <option value="">Velg etappe</option>
                                 {STAFETT_ETAPPER.map(function(et) { return <option key={et.nr} value={"Etappe " + et.nr}>Etappe {et.nr} — {et.dist} ({et.fra} → {et.til})</option>; })}
                               </select>
