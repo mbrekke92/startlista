@@ -1119,21 +1119,23 @@ export default function Main({ session }) {
                 re.forEach(function(e) { if (e.goal && e.goal.match(/^Etappe \d+$/)) { var nr = parseInt(e.goal.split(" ")[1]); etappeCount[nr] = (etappeCount[nr] || 0) + 1; } });
                 return (
                   <div style={{ marginBottom: 24 }}>
-                    <h2 style={{ ...sT, marginBottom: 10 }}>Etapper</h2>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {STAFETT_ETAPPER.map(function(et) {
-                        var count = etappeCount[et.nr] || 0;
-                        var isActive = etappeFilter === et.nr;
-                        return <div key={et.nr} onClick={function() { setEtappeFilter(isActive ? null : et.nr); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "10px 14px", cursor: "pointer", transition: "all 0.15s ease", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: isActive ? "#fff" : "#1A1A1A" }}>Etappe {et.nr}</span>
-                            <span style={{ fontSize: 12, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E", marginLeft: 8 }}>{et.dist}</span>
-                            <div style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.5)" : "#C4C3BB", marginTop: 2 }}>{et.fra} → {et.til}</div>
-                          </div>
-                          {count > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? "#fff" : "#2D5A3D", background: isActive ? "rgba(255,255,255,0.2)" : "#EFF5F0", padding: "2px 8px", borderRadius: 8 }}>{count} {count === 1 ? "løper" : "løpere"}</span>}
-                        </div>;
-                      })}
-                    </div>
+                    <button onClick={function() { if (etappeFilter) { setEtappeFilter(null); } else { setEtappeFilter("_show"); } }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: etappeFilter && etappeFilter !== "_show" ? "#2D5A3D" : "transparent", color: etappeFilter && etappeFilter !== "_show" ? "#fff" : "#9B9B8E", cursor: "pointer" }}>{etappeFilter && etappeFilter !== "_show" ? "Etappe " + etappeFilter + " ✕" : "Filtrer på etappe"}</button>
+                    {(etappeFilter === "_show" || (etappeFilter && etappeFilter !== "_show")) && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+                        {STAFETT_ETAPPER.map(function(et) {
+                          var count = etappeCount[et.nr] || 0;
+                          var isActive = etappeFilter === et.nr;
+                          return <div key={et.nr} onClick={function() { setEtappeFilter(isActive ? null : et.nr); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "10px 14px", cursor: "pointer", transition: "all 0.15s ease", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: isActive ? "#fff" : "#1A1A1A" }}>Etappe {et.nr}</span>
+                              <span style={{ fontSize: 12, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E", marginLeft: 8 }}>{et.dist}</span>
+                              <div style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.5)" : "#C4C3BB", marginTop: 2 }}>{et.fra} → {et.til}</div>
+                            </div>
+                            {count > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? "#fff" : "#2D5A3D", background: isActive ? "rgba(255,255,255,0.2)" : "#EFF5F0", padding: "2px 8px", borderRadius: 8 }}>{count} {count === 1 ? "løper" : "løpere"}</span>}
+                          </div>;
+                        })}
+                      </div>
+                    )}
                     <div style={{ fontSize: 11, color: "#C4C3BB", marginTop: 8 }}>Velg din etappe under <span onClick={function() { openProfile(profile); }} style={{ color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Min profil</span></div>
                   </div>
                 );
@@ -1198,7 +1200,7 @@ export default function Main({ session }) {
                 re = re.filter(function(e) { var p = profiles.find(function(pr) { return pr.id === e.user_id; }); return p && p.city === fylkeFilter; });
               }
               // Apply etappe filter
-              if (etappeFilter) {
+              if (etappeFilter && etappeFilter !== "_show") {
                 re = re.filter(function(e) { return e.goal === "Etappe " + etappeFilter; });
               }
               if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere med valgt filter</div>;
