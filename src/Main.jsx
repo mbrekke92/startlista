@@ -60,6 +60,26 @@ const daysUntil = (dateStr) => {
   return Math.ceil((new Date(dateStr + "T00:00:00") - now) / 86400000);
 };
 
+const STAFETT_ETAPPER = [
+  { nr: 1, dist: "1100m", fra: "Knud Knudsens plass", til: "Louises gate" },
+  { nr: 2, dist: "1070m", fra: "Louises gate", til: "Wolffs gate" },
+  { nr: 3, dist: "595m", fra: "Wolffs gate", til: "Wilhelm Færdens vei" },
+  { nr: 4, dist: "1920m", fra: "Wilhelm Færdens vei", til: "Forskningsveien" },
+  { nr: 5, dist: "1210m", fra: "Forskningsveien", til: "Holmenveien" },
+  { nr: 6, dist: "1250m", fra: "Holmenveien", til: "Slemdal skole" },
+  { nr: 7, dist: "1770m", fra: "Slemdal skole", til: "Besserud" },
+  { nr: 8, dist: "1780m", fra: "Besserud", til: "Gressbanen" },
+  { nr: 9, dist: "625m", fra: "Gressbanen", til: "Holmendammen" },
+  { nr: 10, dist: "2860m", fra: "Holmendammen", til: "Frognerparken" },
+  { nr: 11, dist: "1520m", fra: "Frognerparken", til: "Nordraaks gate" },
+  { nr: 12, dist: "350m", fra: "Nordraaks gate", til: "Arno Bergs plass" },
+  { nr: 13, dist: "1080m", fra: "Arno Bergs plass", til: "Camilla Collets vei" },
+  { nr: 14, dist: "710m", fra: "Camilla Collets vei", til: "Bislettgata" },
+  { nr: 15, dist: "535m", fra: "Bislettgata", til: "Mål" }
+];
+
+const isStafett = (raceName) => (raceName || "").toLowerCase().includes("holmenkollstafetten");
+
 const fuzzyMatch = (input, target) => {
   const a = input.toLowerCase().replace(/[^a-zæøå0-9]/g, "");
   const b = target.toLowerCase().replace(/[^a-zæøå0-9]/g, "");
@@ -160,6 +180,7 @@ export default function Main({ session }) {
   const [raceSortByTime, setRaceSortByTime] = useState(false);
   const [tempoFilter, setTempoFilter] = useState(null);
   const [fylkeFilter, setFylkeFilter] = useState(null);
+  const [etappeFilter, setEtappeFilter] = useState(null);
   const [editingResultId, setEditingResultId] = useState(null);
   const [resultH, setResultH] = useState(0);
   const [resultM, setResultM] = useState(0);
@@ -332,7 +353,7 @@ export default function Main({ session }) {
   var handleLogout = async function() { await supabase.auth.signOut(); };
 
   var openProfile = function(p) { nav(function() { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
-  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); }); };
+  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); }); };
   var goRaces = function() { nav(function() { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
   var goFeed = function() { nav(function() { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
 
@@ -948,16 +969,31 @@ export default function Main({ session }) {
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {editingGoalEntryId !== entry.id && entry.goal && <span onClick={function() { if (isMe) startEditGoal(entry); }} style={{ fontSize: 12, fontWeight: 500, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 10px", borderRadius: 12, cursor: isMe ? "pointer" : "default" }}>{entry.goal}</span>}
-                          {editingGoalEntryId !== entry.id && !entry.goal && isMe && <span onClick={function() { startEditGoal(entry); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>+ mål</span>}
+                          {editingGoalEntryId !== entry.id && !entry.goal && isMe && <span onClick={function() { startEditGoal(entry); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>{isStafett(race.name) ? "+ velg etappe" : "+ mål"}</span>}
                         </div>
                       </div>
                       {editingGoalEntryId === entry.id && isMe && (
                         <div style={{ marginTop: 10 }}>
-                          <TP h={editGoalH} m={editGoalM} s={editGoalS} onH={setEditGoalH} onM={setEditGoalM} onS={setEditGoalS} label="Endre målsetning" />
-                          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                            <button onClick={function() { updateGoal(entry.id); }} style={{ ...pill(false, true), padding: "5px 14px", fontSize: 11 }}>Lagre</button>
-                            <button onClick={function() { setEditingGoalEntryId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>Avbryt</button>
-                          </div>
+                          {isStafett(race.name) ? (
+                            <div>
+                              <label style={lS}>Velg etappe</label>
+                              <select value={entry.goal || ""} onChange={function(e) { var val = e.target.value; supabase.from("entries").update({ goal: val }).eq("id", entry.id); setEntries(function(prev) { return prev.map(function(en) { return en.id === entry.id ? { ...en, goal: val } : en; }); }); setEditingGoalEntryId(null); }} style={selS}>
+                                <option value="">Velg etappe</option>
+                                {STAFETT_ETAPPER.map(function(et) { return <option key={et.nr} value={"Etappe " + et.nr}>Etappe {et.nr} — {et.dist} ({et.fra} → {et.til})</option>; })}
+                              </select>
+                              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                                <button onClick={function() { setEditingGoalEntryId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>Avbryt</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <TP h={editGoalH} m={editGoalM} s={editGoalS} onH={setEditGoalH} onM={setEditGoalM} onS={setEditGoalS} label="Endre målsetning" />
+                              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                                <button onClick={function() { updateGoal(entry.id); }} style={{ ...pill(false, true), padding: "5px 14px", fontSize: 11 }}>Lagre</button>
+                                <button onClick={function() { setEditingGoalEntryId(null); }} style={{ ...pill(false, false), padding: "5px 14px", fontSize: 11 }}>Avbryt</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {isMe && editingGoalEntryId !== entry.id && <div style={{ marginTop: 6 }}><span onClick={function() { removeEntry(race.id); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>Fjern fra listen</span></div>}
@@ -1074,9 +1110,35 @@ export default function Main({ session }) {
               </div>
             )}
 
-            {/* Tempo groups */}
+            {/* Tempo groups / Etapper */}
             {(function() {
               var re = entries.filter(function(e) { return e.race_id === selectedRace.id; });
+              if (isStafett(selectedRace.name)) {
+                // Etappe view for Holmenkollstafetten
+                var etappeCount = {};
+                re.forEach(function(e) { if (e.goal && e.goal.match(/^Etappe \d+$/)) { var nr = parseInt(e.goal.split(" ")[1]); etappeCount[nr] = (etappeCount[nr] || 0) + 1; } });
+                return (
+                  <div style={{ marginBottom: 24 }}>
+                    <h2 style={{ ...sT, marginBottom: 10 }}>Etapper</h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {STAFETT_ETAPPER.map(function(et) {
+                        var count = etappeCount[et.nr] || 0;
+                        var isActive = etappeFilter === et.nr;
+                        return <div key={et.nr} onClick={function() { setEtappeFilter(isActive ? null : et.nr); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "10px 14px", cursor: "pointer", transition: "all 0.15s ease", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: isActive ? "#fff" : "#1A1A1A" }}>Etappe {et.nr}</span>
+                            <span style={{ fontSize: 12, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E", marginLeft: 8 }}>{et.dist}</span>
+                            <div style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.5)" : "#C4C3BB", marginTop: 2 }}>{et.fra} → {et.til}</div>
+                          </div>
+                          {count > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? "#fff" : "#2D5A3D", background: isActive ? "rgba(255,255,255,0.2)" : "#EFF5F0", padding: "2px 8px", borderRadius: 8 }}>{count} {count === 1 ? "løper" : "løpere"}</span>}
+                        </div>;
+                      })}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#C4C3BB", marginTop: 8 }}>Velg din etappe under <span onClick={function() { openProfile(profile); }} style={{ color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Min profil</span></div>
+                  </div>
+                );
+              }
+              // Normal tempo groups
               var tg = getTempoGroups(re, selectedRace.distance);
               if (!tg.length) return null;
               return (
@@ -1088,6 +1150,7 @@ export default function Main({ session }) {
                       return <div key={g.label} onClick={function() { setTempoFilter(isActive ? null : g); }} style={{ background: isActive ? "#2D5A3D" : "#fff", border: "1px solid " + (isActive ? "#2D5A3D" : "#EDECE6"), borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", transition: "all 0.15s ease" }}><span style={{ fontSize: 13, fontWeight: 600, color: isActive ? "#fff" : "#1A1A1A" }}>{g.label}</span><span style={{ fontSize: 11, color: isActive ? "rgba(255,255,255,0.7)" : "#9B9B8E" }}>{g.count} {g.count === 1 ? "løper" : "løpere"}</span></div>;
                     })}
                   </div>
+                  <div style={{ fontSize: 11, color: "#C4C3BB", marginTop: 8 }}>Legg til eller endre din målsetning under <span onClick={function() { openProfile(profile); }} style={{ color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Min profil</span></div>
                 </div>
               );
             })()}
@@ -1134,6 +1197,10 @@ export default function Main({ session }) {
               if (fylkeFilter && fylkeFilter !== "_show") {
                 re = re.filter(function(e) { var p = profiles.find(function(pr) { return pr.id === e.user_id; }); return p && p.city === fylkeFilter; });
               }
+              // Apply etappe filter
+              if (etappeFilter) {
+                re = re.filter(function(e) { return e.goal === "Etappe " + etappeFilter; });
+              }
               if (!re.length) return <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Ingen løpere med valgt filter</div>;
               var sorted;
               if (raceSortByTime) {
@@ -1154,7 +1221,7 @@ export default function Main({ session }) {
                         <Av p={p} />
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.2px" }}>{fullName(p)} {isMe && <span style={{ fontWeight: 400, color: "#C4C3BB" }}>(deg)</span>}</div>
-                          <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal ? " · Mål: " + entry.goal : ""}</div>
+                          <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal ? (isStafett(selectedRace.name) ? " · " + entry.goal : " · Mål: " + entry.goal) : ""}</div>
                         </div>
                       </div>
                       {!isMe && (followingIds.includes(p.id) ? <span style={{ fontSize: 11, color: "#9B9B8E", padding: "4px 12px", borderRadius: 14, border: "1px solid #E2E0D8", whiteSpace: "nowrap" }}>Følger</span> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#2D5A3D", padding: "4px 12px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
