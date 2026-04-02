@@ -538,7 +538,13 @@ export default function Main({ session }) {
           <div style={{ padding: "24px 0 60px" }}>
             <div style={{ textAlign: "center", padding: "32px 0 24px" }}>
               <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.8px", marginBottom: 8 }}>Velkommen til startlista</div>
-              <div style={{ fontSize: 15, color: "#9B9B8E", lineHeight: 1.5 }}>Din og dine løpevenners terminliste.</div>
+              <div style={{ fontSize: 15, color: "#9B9B8E", lineHeight: 1.5 }}>{(function() {
+                var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
+                var hasFollowing = followingIds.length > 0;
+                if (!hasRaces) return "Legg til ditt første løp for å se hvem andre som skal løpe det samme.";
+                if (!hasFollowing) return "Søk etter løpere du kjenner og følg dem.";
+                return "Din og dine løpevenners terminliste.";
+              })()}</div>
               <div style={{ fontSize: 12, color: "#C4C3BB", marginTop: 8 }}>{totalUsers} løpere registrert</div>
             </div>
 
@@ -546,34 +552,6 @@ export default function Main({ session }) {
               <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
             </div>
-
-            {/* Onboarding */}
-            {(function() {
-              var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
-              var hasFollowing = followingIds.length > 0;
-              if (hasRaces && hasFollowing) return null;
-              return (
-                <div style={{ background: "#fff", borderLeft: "3px solid #2D5A3D", borderRadius: 10, padding: "16px 18px", marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                  {!hasRaces && (
-                    <div onClick={function() { openProfile(profile); setTimeout(function() { setShowAddRace(true); }, 100); }} style={{ cursor: "pointer", marginBottom: hasFollowing ? 0 : 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", marginBottom: 3 }}>Legg til ditt første løp</div>
-                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Legg inn løpene du planlegger — da ser du hvem andre som skal løpe det samme →</div>
-                    </div>
-                  )}
-                  {hasRaces && !hasFollowing && (
-                    <div style={{ cursor: "default" }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", marginBottom: 3 }}>Følg en løpevenn</div>
-                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Bruk søkefeltet over for å finne løpere du kjenner — da ser du hva de planlegger →</div>
-                    </div>
-                  )}
-                  {!hasRaces && !hasFollowing && (
-                    <div style={{ cursor: "default", marginTop: 0 }}>
-                      <div style={{ fontSize: 12, color: "#9B9B8E" }}>Bruk søkefeltet for å finne løpere du kjenner og følg dem →</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
 
             {/* Hero */}
             {hero && (function() {
@@ -718,6 +696,9 @@ export default function Main({ session }) {
         {/* ═══ OVERSIKT ═══ */}
         {view === "feed" && (
           <div style={{ padding: "24px 0 60px" }}>
+            <div style={{ textAlign: "center", padding: "16px 0 20px" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.5px" }}>Dine løpevenners planer</div>
+            </div>
             <div style={{ position: "relative", marginBottom: 20 }}>
               <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
@@ -742,7 +723,7 @@ export default function Main({ session }) {
                 }
               });
               var grouped = Object.values(rg).sort(function(a, b) { return a.race.date.localeCompare(b.race.date); });
-              if (!grouped.length) return <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ fontSize: 15, color: "#C4C3BB", lineHeight: 1.6 }}>Følg løpere for å se deres planer her,<br />eller legg til egne løp fra Min profil.</div></div>;
+              if (!grouped.length) return <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ fontSize: 15, color: "#C4C3BB", lineHeight: 1.6 }}>Følg løpere for å se deres planer her,<br />eller legg til egne løp fra <span onClick={function() { openProfile(profile); }} style={{ color: "#2D5A3D", cursor: "pointer", fontWeight: 500 }}>Min profil</span>.</div></div>;
               return (
                 <div>
                   <h2 style={sT}>Oversikt</h2>
@@ -792,7 +773,7 @@ export default function Main({ session }) {
               </div>
 
               {selectedProfile.id !== userId && !followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ ...pill(false, true), fontSize: 13, padding: "9px 24px" }}>Følg</button>}
-              {selectedProfile.id !== userId && followingIds.includes(selectedProfile.id) && <span style={{ fontSize: 12, color: "#9B9B8E" }}>Følger</span>}
+              {selectedProfile.id !== userId && followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", padding: "7px 18px", borderRadius: 20, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer" }}>Følger</button>}
               {selectedProfile.id === userId && (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button onClick={function() { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
@@ -1039,7 +1020,7 @@ export default function Main({ session }) {
                             </div>
                           </div>
                         )}
-                        {isMe && editingResultId !== entry.id && entry.result && <div style={{ marginTop: 4 }}><span onClick={function() { startEditResult(entry); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>Endre sluttid</span></div>}
+                        {isMe && editingResultId !== entry.id && entry.result && <div style={{ marginTop: 4 }}><span onClick={function() { startEditResult(entry); }} style={{ fontSize: 11, color: "#2D5A3D", cursor: "pointer" }}>Endre sluttid</span></div>}
                       </div>
                     );
                   })}
@@ -1084,7 +1065,7 @@ export default function Main({ session }) {
                     <div style={{ paddingTop: 8 }}><button onClick={handleLogout} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button></div>
                   </div>
                 )}
-                {!showSettings && <div style={{ marginTop: 12 }}><button onClick={handleLogout} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button></div>}
+                {!showSettings && <div style={{ marginTop: 12 }}></div>}
               </div>
             )}
           </div>
@@ -1106,7 +1087,7 @@ export default function Main({ session }) {
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-                <span style={{ fontSize: 12, color: "#9B9B8E" }}>✓ Lagt til i dine løp</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "#2D5A3D", background: "#EFF5F0", padding: "5px 14px", borderRadius: 14 }}>✓ Lagt til i dine løp</span>
                 <ShareRace race={selectedRace} />
               </div>
             )}
@@ -1227,7 +1208,7 @@ export default function Main({ session }) {
                           <div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}{entry.goal ? (isStafett(selectedRace.name) ? " · " + entry.goal : " · Mål: " + entry.goal) : ""}</div>
                         </div>
                       </div>
-                      {!isMe && (followingIds.includes(p.id) ? <span style={{ fontSize: 11, color: "#9B9B8E", padding: "4px 12px", borderRadius: 14, border: "1px solid #E2E0D8", whiteSpace: "nowrap" }}>Følger</span> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#2D5A3D", padding: "4px 12px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
+                      {!isMe && (followingIds.includes(p.id) ? <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#9B9B8E", padding: "4px 12px", borderRadius: 14, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>Følger</button> : <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, color: "#2D5A3D", padding: "4px 12px", borderRadius: 14, border: "1px solid #2D5A3D", background: "transparent", cursor: "pointer", whiteSpace: "nowrap" }}>+ Følg</button>)}
                     </div>
                   );
                 })}</div>
@@ -1238,7 +1219,7 @@ export default function Main({ session }) {
       </main>
 
       <footer style={{ padding: "24px", textAlign: "center", fontSize: 11, color: "#C4C3BB", borderTop: "1px solid #EDECE6" }}>
-        <div>startlista · laget for løpere som vil finne hverandre</div>
+        <div>startlista.no · laget for løpere som vil finne hverandre</div>
         <div style={{ marginTop: 6 }}><a href="/personvern" style={{ color: "#C4C3BB", textDecoration: "underline" }}>Personvern</a></div>
       </footer>
     </div>
