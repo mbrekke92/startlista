@@ -997,7 +997,7 @@ export default function Main({ session }) {
                           )}
                         </div>
                       )}
-                      {isMe && editingGoalEntryId !== entry.id && <div style={{ marginTop: 6 }}><span onClick={function() { removeEntry(race.id); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>Fjern fra listen</span></div>}
+                      {isMe && editingGoalEntryId !== entry.id && <div style={{ marginTop: 6 }}><span onClick={function() { removeEntry(race.id); }} style={{ fontSize: 11, color: "#C53030", cursor: "pointer" }}>Fjern fra listen</span></div>}
                     </div>
                   );
                 });
