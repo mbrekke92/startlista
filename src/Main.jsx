@@ -1123,6 +1123,37 @@ export default function Main({ session }) {
               </div>
             )}
 
+            <div style={{ marginBottom: 20 }}>
+              {!showReport && !reportSent && (
+                <span onClick={function() { setShowReport(true); }} style={{ fontSize: 11, color: "#C4C3BB", cursor: "pointer", textDecoration: "underline" }}>Feil i informasjonen?</span>
+              )}
+              {reportSent && (
+                <span style={{ fontSize: 12, color: "#2D5A3D" }}>Takk for tilbakemeldingen!</span>
+              )}
+              {showReport && (
+                <div style={{ marginTop: 8, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Rapporter feil</div>
+                  <label style={lS}>Hva er feil?</label>
+                  <select value={reportCategory} onChange={function(e) { setReportCategory(e.target.value); }} style={{ ...selS, marginBottom: 12 }}>
+                    <option value="">Velg type</option>
+                    <option value="Feil dato">Feil dato</option>
+                    <option value="Feil sted">Feil sted</option>
+                    <option value="Skrivefeil i navn">Skrivefeil i navn</option>
+                    <option value="Feil distanse">Feil distanse</option>
+                    <option value="Løpet er avlyst">Løpet er avlyst</option>
+                    <option value="Duplikat">Duplikat av et annet løp</option>
+                    <option value="Annet">Annet</option>
+                  </select>
+                  <label style={lS}>Kommentar (valgfritt)</label>
+                  <input type="text" placeholder="F.eks. riktig dato er 15. mai" value={reportComment} onChange={function(e) { setReportComment(e.target.value); }} style={iS} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                    <button onClick={submitReport} disabled={!reportCategory} style={{ ...pill(false, true), fontSize: 12, padding: "8px 20px", opacity: reportCategory ? 1 : 0.4 }}>Send inn</button>
+                    <button onClick={function() { setShowReport(false); setReportCategory(""); setReportComment(""); }} style={pill(false, false)}>Avbryt</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Tempo groups / Etapper */}
             {(function() {
               var re = entries.filter(function(e) { return e.race_id === selectedRace.id; });
@@ -1245,37 +1276,6 @@ export default function Main({ session }) {
                 })}</div>
               );
             })()}
-
-            <div style={{ marginTop: 40, textAlign: "center" }}>
-              {!showReport && !reportSent && (
-                <span onClick={function() { setShowReport(true); }} style={{ fontSize: 12, color: "#C4C3BB", cursor: "pointer", textDecoration: "underline" }}>Feil i informasjonen?</span>
-              )}
-              {reportSent && (
-                <span style={{ fontSize: 12, color: "#2D5A3D" }}>Takk for tilbakemeldingen!</span>
-              )}
-              {showReport && (
-                <div style={{ marginTop: 12, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 20, textAlign: "left", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Rapporter feil</div>
-                  <label style={lS}>Hva er feil?</label>
-                  <select value={reportCategory} onChange={function(e) { setReportCategory(e.target.value); }} style={{ ...selS, marginBottom: 12 }}>
-                    <option value="">Velg type</option>
-                    <option value="Feil dato">Feil dato</option>
-                    <option value="Feil sted">Feil sted</option>
-                    <option value="Skrivefeil i navn">Skrivefeil i navn</option>
-                    <option value="Feil distanse">Feil distanse</option>
-                    <option value="Løpet er avlyst">Løpet er avlyst</option>
-                    <option value="Duplikat">Duplikat av et annet løp</option>
-                    <option value="Annet">Annet</option>
-                  </select>
-                  <label style={lS}>Kommentar (valgfritt)</label>
-                  <input type="text" placeholder="F.eks. riktig dato er 15. mai" value={reportComment} onChange={function(e) { setReportComment(e.target.value); }} style={iS} />
-                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                    <button onClick={submitReport} disabled={!reportCategory} style={{ ...pill(false, true), fontSize: 12, padding: "8px 20px", opacity: reportCategory ? 1 : 0.4 }}>Send inn</button>
-                    <button onClick={function() { setShowReport(false); setReportCategory(""); setReportComment(""); }} style={pill(false, false)}>Avbryt</button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </main>
