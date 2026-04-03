@@ -192,6 +192,7 @@ export default function Main({ session }) {
   const [reportComment, setReportComment] = useState("");
   const [reportSent, setReportSent] = useState(false);
   const [navHistory, setNavHistory] = useState([]);
+  const [showFollowing, setShowFollowing] = useState(false);
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -855,12 +856,36 @@ export default function Main({ session }) {
                   <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>gjennomført</div>
                 </div>
                 {selectedProfile.id === userId && (
-                  <div style={{ flex: 1, background: "#fff", border: "1px solid #EDECE6", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
-                    <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.5px" }}>{followingIds.length}</div>
-                    <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>følger</div>
+                  <div onClick={function() { setShowFollowing(!showFollowing); }} style={{ flex: 1, background: showFollowing ? "#2D5A3D" : "#fff", border: "1px solid " + (showFollowing ? "#2D5A3D" : "#EDECE6"), borderRadius: 12, padding: "14px 16px", textAlign: "center", cursor: "pointer", transition: "all 0.15s ease" }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: showFollowing ? "#fff" : "#1A1A1A", letterSpacing: "-0.5px" }}>{followingIds.length}</div>
+                    <div style={{ fontSize: 11, color: showFollowing ? "rgba(255,255,255,0.7)" : "#9B9B8E", marginTop: 2 }}>følger</div>
                   </div>
                 )}
               </div>
+
+              {/* Following list - shown when følger box is tapped */}
+              {selectedProfile.id === userId && showFollowing && (
+                <div style={{ marginBottom: 18 }}>
+                  {followingIds.length === 0 ? (
+                    <div style={{ fontSize: 13, color: "#C4C3BB", padding: "8px 0" }}>Du følger ingen ennå</div>
+                  ) : (
+                    profiles.filter(function(p) { return followingIds.includes(p.id); }).map(function(p) {
+                      return (
+                        <div key={p.id} style={{ padding: "12px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div onClick={function() { openProfile(p); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+                            <Av p={p} size={32} fontSize={11} />
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px" }}>{fullName(p)}</div>
+                              <div style={{ fontSize: 11, color: "#9B9B8E" }}>{p.city}</div>
+                            </div>
+                          </div>
+                          <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={pill(true, true)}>Følger</button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
 
               {selectedProfile.id !== userId && !followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ ...pill(false, true), fontSize: 13, padding: "9px 24px" }}>Følg</button>}
               {selectedProfile.id !== userId && followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", padding: "7px 18px", borderRadius: 20, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer" }}>Følger</button>}
@@ -1118,20 +1143,6 @@ export default function Main({ session }) {
               );
             })()}
 
-            {/* Following */}
-            {selectedProfile.id === userId && followingIds.length > 0 && (
-              <div style={{ marginTop: 36 }}>
-                <h2 style={sT}>Følger</h2>
-                {profiles.filter(function(p) { return followingIds.includes(p.id); }).map(function(p) {
-                  return (
-                    <div key={p.id} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div onClick={function() { openProfile(p); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}><Av p={p} /><div><div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.2px" }}>{fullName(p)}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{p.city}</div></div></div>
-                      <button onClick={function(e) { e.stopPropagation(); toggleFollow(p.id); }} style={pill(true, true)}>Følger</button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
 
             {/* Settings */}
             {selectedProfile.id === userId && (
