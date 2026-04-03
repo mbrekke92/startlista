@@ -854,6 +854,12 @@ export default function Main({ session }) {
                   <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.5px" }}>{entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date < today; }).length}</div>
                   <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>gjennomført</div>
                 </div>
+                {selectedProfile.id === userId && (
+                  <div style={{ flex: 1, background: "#fff", border: "1px solid #EDECE6", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.5px" }}>{followingIds.length}</div>
+                    <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>følger</div>
+                  </div>
+                )}
               </div>
 
               {selectedProfile.id !== userId && !followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ ...pill(false, true), fontSize: 13, padding: "9px 24px" }}>Følg</button>}
@@ -1146,10 +1152,15 @@ export default function Main({ session }) {
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Slett konto</div>
                       {!showDeleteConfirm ? <button onClick={function() { setShowDeleteConfirm(true); }} style={{ fontSize: 11, color: "#C53030", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", textDecoration: "underline", padding: 0 }}>Slett kontoen min permanent</button> : <div style={{ background: "#FFF5F5", border: "1px solid #FED7D7", borderRadius: 10, padding: 18 }}><div style={{ fontSize: 13, fontWeight: 600, color: "#C53030", marginBottom: 8 }}>Er du sikker?</div><div style={{ fontSize: 12, color: "#7A7A6E", marginBottom: 14 }}>Alle dine data slettes permanent.</div><div style={{ display: "flex", gap: 8 }}><button onClick={deleteAccount} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, padding: "7px 18px", borderRadius: 20, border: "1px solid #C53030", background: "#C53030", color: "#fff", cursor: "pointer" }}>Ja, slett kontoen</button><button onClick={function() { setShowDeleteConfirm(false); }} style={pill(false, false)}>Avbryt</button></div></div>}
                     </div>
-                    <div style={{ paddingTop: 8 }}><button onClick={handleLogout} style={{ fontSize: 12, color: "#9B9B8E", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans', sans-serif" }}>Logg ut</button></div>
                   </div>
                 )}
-                {!showSettings && <div style={{ marginTop: 12 }}></div>}
+              </div>
+            )}
+
+            {/* Logout - always visible */}
+            {selectedProfile.id === userId && (
+              <div style={{ marginTop: 32, textAlign: "center" }}>
+                <button onClick={handleLogout} style={{ fontSize: 13, color: "#9B9B8E", background: "none", border: "1px solid #E2E0D8", borderRadius: 20, padding: "8px 24px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>Logg ut</button>
               </div>
             )}
           </div>
