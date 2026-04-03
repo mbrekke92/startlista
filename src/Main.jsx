@@ -191,6 +191,7 @@ export default function Main({ session }) {
   const [reportCategory, setReportCategory] = useState("");
   const [reportComment, setReportComment] = useState("");
   const [reportSent, setReportSent] = useState(false);
+  const [navHistory, setNavHistory] = useState([]);
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -210,7 +211,7 @@ export default function Main({ session }) {
     touchStartY.current = null;
     // Only trigger if: started near left edge, horizontal > 120px, and horizontal > 3x vertical
     if (startX < 40 && diffX > 120 && diffX > diffY * 3) {
-      if (view === "race" || view === "profile") goRaces();
+      if (view === "race" || view === "profile") goBack();
     }
   };
 
@@ -384,10 +385,23 @@ export default function Main({ session }) {
   var deleteAccount = async function() { await supabase.rpc("delete_user"); await supabase.auth.signOut(); };
   var handleLogout = async function() { await supabase.auth.signOut(); };
 
-  var openProfile = function(p) { nav(function() { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
-  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); setShowReport(false); setReportSent(false); setReportCategory(""); setReportComment(""); }); };
-  var goRaces = function() { nav(function() { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
-  var goFeed = function() { nav(function() { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
+  var openProfile = function(p) { nav(function() { setNavHistory(function(prev) { return [...prev, { view: view, selectedProfile: selectedProfile, selectedRace: selectedRace }]; }); setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
+  var openRace = function(raceId) { nav(function() { setNavHistory(function(prev) { return [...prev, { view: view, selectedProfile: selectedProfile, selectedRace: selectedRace }]; }); setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); setShowReport(false); setReportSent(false); setReportCategory(""); setReportComment(""); }); };
+  var goRaces = function() { nav(function() { setNavHistory([]); setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
+  var goFeed = function() { nav(function() { setNavHistory([]); setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
+  var goBack = function() {
+    if (navHistory.length === 0) { goRaces(); return; }
+    var prev = navHistory[navHistory.length - 1];
+    setNavHistory(function(h) { return h.slice(0, -1); });
+    setFadeKey(function(k) { return k + 1; });
+    setView(prev.view);
+    setSelectedProfile(prev.selectedProfile);
+    setSelectedRace(prev.selectedRace);
+    setGlobalSearch("");
+    setShowSettings(false);
+    setShowReport(false);
+    setReportSent(false);
+  };
 
   var filteredRaces = searchQuery.length > 0 ? races.filter(function(r) { return r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.location.toLowerCase().includes(searchQuery.toLowerCase()); }) : [];
   var getSuggestions = function(name) { if (!name || name.length < 4) return []; return races.filter(function(r) { return fuzzyMatch(name, r.name) && !myEntries.some(function(e) { return e.race_id === r.id; }); }).slice(0, 3); };
@@ -780,7 +794,7 @@ export default function Main({ session }) {
         {/* ═══ PROFILE ═══ */}
         {view === "profile" && selectedProfile && (
           <div style={{ padding: "36px 0 60px" }}>
-            <div onClick={goRaces} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
+            <div onClick={goBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
 
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
@@ -1105,7 +1119,7 @@ export default function Main({ session }) {
         {/* ═══ RACE DETAIL ═══ */}
         {view === "race" && selectedRace && (
           <div style={{ padding: "36px 0 60px" }}>
-            <div onClick={goRaces} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
+            <div onClick={goBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "#5A5A52", cursor: "pointer", marginBottom: 28, fontWeight: 500, padding: "6px 12px", borderRadius: 8, background: "#fff", border: "1px solid #EDECE6" }}>← Tilbake</div>
             <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.5px" }}>{selectedRace.name}</h1>
             <div style={{ fontSize: 14, color: "#9B9B8E", marginBottom: 8 }}>{raceLocation(selectedRace)} · {displayDistance(selectedRace.distance)} · {formatDate(selectedRace.date)}</div>
             {selectedRace.user_created && <div style={{ fontSize: 11, color: "#C4C3BB", marginBottom: 8 }}>Lagt til av bruker — verifiser dato hos arrangør</div>}
