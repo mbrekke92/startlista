@@ -187,6 +187,10 @@ export default function Main({ session }) {
   const [resultH, setResultH] = useState(0);
   const [resultM, setResultM] = useState(0);
   const [resultS, setResultS] = useState(0);
+  const [showReport, setShowReport] = useState(false);
+  const [reportCategory, setReportCategory] = useState("");
+  const [reportComment, setReportComment] = useState("");
+  const [reportSent, setReportSent] = useState(false);
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -349,6 +353,16 @@ export default function Main({ session }) {
     setEditingResultId(entry.id);
   };
 
+  var submitReport = async function() {
+    if (!reportCategory || !selectedRace) return;
+    await supabase.from("reports").insert({ race_id: selectedRace.id, user_id: userId, category: reportCategory, comment: reportComment });
+    setShowReport(false);
+    setReportCategory("");
+    setReportComment("");
+    setReportSent(true);
+    setTimeout(function() { setReportSent(false); }, 3000);
+  };
+
   var updateFylke = async function() {
     if (!editFylke) return;
     await supabase.from("profiles").update({ city: editFylke }).eq("id", userId);
@@ -371,7 +385,7 @@ export default function Main({ session }) {
   var handleLogout = async function() { await supabase.auth.signOut(); };
 
   var openProfile = function(p) { nav(function() { setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
-  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); }); };
+  var openRace = function(raceId) { nav(function() { setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); setShowReport(false); setReportSent(false); setReportCategory(""); setReportComment(""); }); };
   var goRaces = function() { nav(function() { setView("races"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); setShowAllRaces(false); }); };
   var goFeed = function() { nav(function() { setView("feed"); setSelectedProfile(null); setSelectedRace(null); setGlobalSearch(""); setShowSettings(false); }); };
 
@@ -1231,6 +1245,37 @@ export default function Main({ session }) {
                 })}</div>
               );
             })()}
+
+            <div style={{ marginTop: 40, textAlign: "center" }}>
+              {!showReport && !reportSent && (
+                <span onClick={function() { setShowReport(true); }} style={{ fontSize: 12, color: "#C4C3BB", cursor: "pointer", textDecoration: "underline" }}>Feil i informasjonen?</span>
+              )}
+              {reportSent && (
+                <span style={{ fontSize: 12, color: "#2D5A3D" }}>Takk for tilbakemeldingen!</span>
+              )}
+              {showReport && (
+                <div style={{ marginTop: 12, background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 20, textAlign: "left", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Rapporter feil</div>
+                  <label style={lS}>Hva er feil?</label>
+                  <select value={reportCategory} onChange={function(e) { setReportCategory(e.target.value); }} style={{ ...selS, marginBottom: 12 }}>
+                    <option value="">Velg type</option>
+                    <option value="Feil dato">Feil dato</option>
+                    <option value="Feil sted">Feil sted</option>
+                    <option value="Skrivefeil i navn">Skrivefeil i navn</option>
+                    <option value="Feil distanse">Feil distanse</option>
+                    <option value="Løpet er avlyst">Løpet er avlyst</option>
+                    <option value="Duplikat">Duplikat av et annet løp</option>
+                    <option value="Annet">Annet</option>
+                  </select>
+                  <label style={lS}>Kommentar (valgfritt)</label>
+                  <input type="text" placeholder="F.eks. riktig dato er 15. mai" value={reportComment} onChange={function(e) { setReportComment(e.target.value); }} style={iS} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                    <button onClick={submitReport} disabled={!reportCategory} style={{ ...pill(false, true), fontSize: 12, padding: "8px 20px", opacity: reportCategory ? 1 : 0.4 }}>Send inn</button>
+                    <button onClick={function() { setShowReport(false); setReportCategory(""); setReportComment(""); }} style={pill(false, false)}>Avbryt</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
