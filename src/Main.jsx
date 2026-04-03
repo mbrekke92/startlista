@@ -602,6 +602,43 @@ export default function Main({ session }) {
             </div>
 
             {/* Hero */}
+            {(function() {
+              var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
+              if (!hasRaces) {
+                var popular = races.filter(function(r) { return r.date >= today; }).map(function(r) {
+                  return { race: r, count: entries.filter(function(e) { return e.race_id === r.id; }).length };
+                }).filter(function(r) { return r.count > 0; }).sort(function(a, b) { return b.count - a.count; }).slice(0, 4);
+                if (popular.length > 0) {
+                  return (
+                    <div style={{ background: "#fff", border: "1px solid #EDECE6", borderRadius: 16, padding: "22px 20px", marginBottom: 28, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, letterSpacing: "-0.3px" }}>Hva er ditt neste løp?</div>
+                      <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 16 }}>Trykk for å legge til</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {popular.map(function(item) {
+                          var already = myEntries.some(function(e) { return e.race_id === item.race.id; });
+                          return (
+                            <div key={item.race.id} onClick={function() { if (!already) addRaceToMyList(item.race.id); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: already ? "#F8F8F5" : "#FAFAF7", borderRadius: 12, cursor: already ? "default" : "pointer", border: "1px solid #EDECE6" }}>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px", color: already ? "#9B9B8E" : "#1A1A1A" }}>{item.race.name}</div>
+                                <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)}</div>
+                              </div>
+                              {already ? (
+                                <span style={{ fontSize: 11, color: "#2D5A3D", fontWeight: 500 }}>✓</span>
+                              ) : (
+                                <span style={{ fontSize: 12, fontWeight: 600, color: "#2D5A3D" }}>+</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#C4C3BB", marginTop: 12, textAlign: "center" }}>Finner du ikke løpet? Bruk søkefeltet over</div>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+
             {hero && (function() {
               var totalCount = entries.filter(function(e) { return e.race_id === hero.race.id; }).length;
               var followingPs = hero.participants.filter(function(p) { return followingIds.includes(p.id) || p.id === userId; });
