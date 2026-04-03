@@ -250,10 +250,11 @@ export default function Main({ session }) {
   var today = new Date().toISOString().split("T")[0];
   var totalUsers = profiles.length;
 
-  var nav = function(fn) { setFadeKey(function(k) { return k + 1; }); fn(); };
+  var nav = function(fn) { setFadeKey(function(k) { return k + 1; }); fn(); window.scrollTo(0, 0); };
   var goalStr = function(h, m, s) { return (h === 0 && m === 0 && s === 0) ? "" : formatGoalTime(h, m, s); };
   var raceLocation = function(race) { return race.location + (race.country && race.country !== "Norge" ? ", " + race.country : ""); };
   var displayDistance = function(dist) { if (!dist) return ""; if (dist === "21.0975 km") return "Halvmaraton"; if (dist === "42.195 km") return "Maraton"; return dist; };
+  var clearSearch = function() { setGlobalSearch(""); };
 
   var saveFylke = async function() {
     if (!selectedFylke) return;
@@ -401,6 +402,7 @@ export default function Main({ session }) {
     setShowSettings(false);
     setShowReport(false);
     setReportSent(false);
+    window.scrollTo(0, 0);
   };
 
   var filteredRaces = searchQuery.length > 0 ? races.filter(function(r) { return r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.location.toLowerCase().includes(searchQuery.toLowerCase()); }) : [];
@@ -576,7 +578,7 @@ export default function Main({ session }) {
         </div>
       </header>
 
-      <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
+      <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onClick={clearSearch} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
         <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"}</style>
 
         {/* ═══ LØP ═══ */}
@@ -594,7 +596,7 @@ export default function Main({ session }) {
               <div style={{ fontSize: 12, color: "#C4C3BB", marginTop: 8 }}>{totalUsers} løpere registrert</div>
             </div>
 
-            <div style={{ position: "relative", marginBottom: 28 }}>
+            <div onClick={function(e) { e.stopPropagation(); }} style={{ position: "relative", marginBottom: 28 }}>
               <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
             </div>
@@ -729,7 +731,7 @@ export default function Main({ session }) {
                       </div>
                     );
                   })}
-                  <div style={{ paddingTop: 16, position: "relative" }}>
+                  <div onClick={function(e) { e.stopPropagation(); }} style={{ paddingTop: 16, position: "relative" }}>
                     <input type="text" placeholder="Søk etter flere løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
                     <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
                   </div>
@@ -745,7 +747,7 @@ export default function Main({ session }) {
             <div style={{ textAlign: "center", padding: "16px 0 20px" }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.5px" }}>Dine løpevenners planer</div>
             </div>
-            <div style={{ position: "relative", marginBottom: 20 }}>
+            <div onClick={function(e) { e.stopPropagation(); }} style={{ position: "relative", marginBottom: 20 }}>
               <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
             </div>
