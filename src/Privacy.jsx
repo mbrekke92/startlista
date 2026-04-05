@@ -31,14 +31,14 @@ export default function Privacy({ onBack }) {
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Hva vi lagrer</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Når du oppretter en profil på startlista.no, lagrer vi fornavn og etternavn, e-postadresse (brukes kun til innlogging og kontobekreftelse), fylke, løp du legger inn på din terminliste (løpsnavn, dato, distanse, målsetning og eventuell sluttid), og hvem du følger.
+              Når du oppretter en profil på startlista.no, lagrer vi fornavn og etternavn, e-postadresse (brukes kun til innlogging og kontobekreftelse), fylke, løp du legger inn på din terminliste (løpsnavn, dato, distanse, målsetning og eventuell sluttid), hvem du følger, og eventuelle rapporter du sender inn om feil i løpsinformasjon.
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Hvorfor vi lagrer det</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              Vi lagrer disse opplysningene for å la deg opprette og vedlikeholde din personlige løpsprofil, vise din terminliste til andre innloggede brukere på plattformen, og la deg følge andre løperes planer. Behandlingsgrunnlaget er samtykke som du gir ved registrering.
+              Vi lagrer disse opplysningene for å la deg opprette og vedlikeholde din personlige løpsprofil, vise din terminliste til andre innloggede brukere på plattformen, la deg følge andre løperes planer, og forbedre kvaliteten på løpsinformasjonen gjennom innrapporterte feil. Behandlingsgrunnlaget er samtykke som du gir ved registrering.
             </p>
           </section>
 
@@ -73,7 +73,7 @@ export default function Privacy({ onBack }) {
           <section>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: "0 0 8px" }}>Dine rettigheter</h2>
             <p style={{ fontSize: 14, color: "#7A7A6E", lineHeight: 1.7, margin: 0 }}>
-              I henhold til GDPR har du rett til å se hvilke opplysninger vi har lagret om deg, endre eller oppdatere dine opplysninger via din profil, be om at dine data overføres til en annen tjeneste (dataportabilitet), og slette din konto og alle tilknyttede data permanent. Du kan slette kontoen din under Innstillinger på Min profil. Alle dine data fjernes umiddelbart ved sletting. For innsyn i lagrede data, kontakt oss på e-postadressen over.
+              I henhold til GDPR har du rett til å se hvilke opplysninger vi har lagret om deg, endre eller oppdatere dine opplysninger via din profil (navn, e-postadresse, fylke og passord), be om at dine data overføres til en annen tjeneste (dataportabilitet), og slette din konto og alle tilknyttede data permanent. Du kan slette kontoen din under Innstillinger på Min profil. Alle dine data fjernes umiddelbart ved sletting. For innsyn i lagrede data, kontakt oss på e-postadressen over.
             </p>
           </section>
 
