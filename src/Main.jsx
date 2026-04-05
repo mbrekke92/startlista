@@ -918,7 +918,7 @@ export default function Main({ session }) {
               {selectedProfile.id !== userId && followingIds.includes(selectedProfile.id) && <button onClick={function() { toggleFollow(selectedProfile.id); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "#9B9B8E", padding: "7px 18px", borderRadius: 20, border: "1px solid #E2E0D8", background: "transparent", cursor: "pointer" }}>Følger</button>}
               {selectedProfile.id === userId && (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <button onClick={function() { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
+                  <button onClick={function() { setShowAddRace(true); setManualMode(false); setSelectedExisting(null); setSearchQuery(""); setTimeout(function() { var el = document.getElementById("add-race-panel"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100); }} style={{ fontSize: 13, fontWeight: 600, padding: "9px 24px", borderRadius: 22, border: "none", background: "#2D5A3D", color: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(45,90,61,0.2)" }}>+ Legg til løp</button>
                   <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "9px 20px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Inviter en løpevenn</span>
                 </div>
               )}
@@ -1002,7 +1002,7 @@ export default function Main({ session }) {
 
             {/* Add race panel */}
             {showAddRace && selectedProfile.id === userId && (
-              <div style={{ background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
+              <div id="add-race-panel" style={{ background: "#fff", border: "1px solid #E2E0D8", borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
                 {!manualMode && !selectedExisting && (
                   <div>
                     <input type="text" placeholder="Søk etter løp..." value={searchQuery} onChange={function(e) { setSearchQuery(e.target.value); }} style={iS} autoFocus />
