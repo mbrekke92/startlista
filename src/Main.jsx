@@ -868,6 +868,7 @@ export default function Main({ session }) {
                 <div>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>{fullName(selectedProfile)}</div>
                   <div style={{ fontSize: 13, color: "#9B9B8E", marginTop: 2 }}>{selectedProfile.city}</div>
+                  {selectedProfile.id === userId && <div style={{ fontSize: 11, color: "#C4C3BB", marginTop: 4 }}>Profilen din og løpene du legger til er synlige for andre brukere. Hvem du følger er kun synlig for deg.</div>}
                 </div>
               </div>
 
