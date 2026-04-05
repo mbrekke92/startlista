@@ -193,6 +193,11 @@ export default function Main({ session }) {
   const [reportSent, setReportSent] = useState(false);
   const [navHistory, setNavHistory] = useState([]);
   const [showFollowing, setShowFollowing] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -386,6 +391,27 @@ export default function Main({ session }) {
 
   var deleteAccount = async function() { await supabase.rpc("delete_user"); await supabase.auth.signOut(); };
   var handleLogout = async function() { await supabase.auth.signOut(); };
+
+  var updateName = async function() {
+    if (!editFirstName.trim() || !editLastName.trim()) { setSettingsMessage("Fyll inn fornavn og etternavn"); return; }
+    var first = capitalize(editFirstName.trim());
+    var last = capitalize(editLastName.trim());
+    await supabase.from("profiles").update({ first_name: first, last_name: last }).eq("id", userId);
+    setProfile(function(prev) { return { ...prev, first_name: first, last_name: last }; });
+    setProfiles(function(prev) { return prev.map(function(p) { return p.id === userId ? { ...p, first_name: first, last_name: last } : p; }); });
+    setSelectedProfile(function(prev) { return prev && prev.id === userId ? { ...prev, first_name: first, last_name: last } : prev; });
+    setEditingName(false);
+    setSettingsMessage("Navn oppdatert");
+    setTimeout(function() { setSettingsMessage(""); }, 2000);
+  };
+
+  var changeEmailFn = async function() {
+    if (!newEmail.trim() || !newEmail.includes("@")) { setSettingsMessage("Ugyldig e-postadresse"); return; }
+    var res = await supabase.auth.updateUser({ email: newEmail.trim() });
+    if (res.error) { setSettingsMessage(res.error.message); }
+    else { setSettingsMessage("Bekreftelseslenke sendt til " + newEmail.trim()); setNewEmail(""); setEditingEmail(false); }
+    setTimeout(function() { setSettingsMessage(""); }, 5000);
+  };
 
   var openProfile = function(p) { nav(function() { setNavHistory(function(prev) { return [...prev, { view: view, selectedProfile: selectedProfile, selectedRace: selectedRace }]; }); setSelectedProfile(p); setView("profile"); setGlobalSearch(""); setShowSettings(false); }); };
   var openRace = function(raceId) { nav(function() { setNavHistory(function(prev) { return [...prev, { view: view, selectedProfile: selectedProfile, selectedRace: selectedRace }]; }); setSelectedRace(races.find(function(r) { return r.id === raceId; })); setView("race"); setGlobalSearch(""); setRaceSortByTime(false); setTempoFilter(null); setFylkeFilter(null); setEtappeFilter(null); setShowReport(false); setReportSent(false); setReportCategory(""); setReportComment(""); }); };
@@ -1151,6 +1177,14 @@ export default function Main({ session }) {
                 {showSettings && (
                   <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 24 }}>
                     {settingsMessage && <div style={{ fontSize: 12, color: "#2D5A3D", background: "#EFF5F0", padding: "10px 14px", borderRadius: 10 }}>{settingsMessage}</div>}
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Endre navn</div>
+                      {!editingName ? <div style={{ display: "flex", alignItems: "center", gap: 12 }}><span style={{ fontSize: 14 }}>{fullName(profile)}</span><button onClick={function() { setEditingName(true); setEditFirstName(profile.first_name); setEditLastName(profile.last_name); }} style={{ ...pill(false, false), padding: "4px 14px", fontSize: 11 }}>Endre</button></div> : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}><div style={{ display: "flex", gap: 8 }}><input type="text" placeholder="Fornavn" value={editFirstName} onChange={function(e) { setEditFirstName(e.target.value); }} style={{ ...iS, flex: 1 }} autoFocus /><input type="text" placeholder="Etternavn" value={editLastName} onChange={function(e) { setEditLastName(e.target.value); }} style={{ ...iS, flex: 1 }} /></div><div style={{ display: "flex", gap: 8 }}><button onClick={updateName} style={{ ...pill(false, true), padding: "7px 16px" }}>Lagre</button><button onClick={function() { setEditingName(false); }} style={{ ...pill(false, false), padding: "7px 16px" }}>Avbryt</button></div></div>}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>E-post</div>
+                      {!editingEmail ? <div style={{ display: "flex", alignItems: "center", gap: 12 }}><span style={{ fontSize: 14 }}>{session.user.email}</span><button onClick={function() { setEditingEmail(true); setNewEmail(""); }} style={{ ...pill(false, false), padding: "4px 14px", fontSize: 11 }}>Endre</button></div> : <div style={{ display: "flex", gap: 8 }}><input type="email" placeholder="Ny e-postadresse" value={newEmail} onChange={function(e) { setNewEmail(e.target.value); }} style={{ ...iS, flex: 1 }} autoFocus /><button onClick={changeEmailFn} style={{ ...pill(false, true), padding: "7px 16px" }}>Lagre</button><button onClick={function() { setEditingEmail(false); setNewEmail(""); }} style={{ ...pill(false, false), padding: "7px 16px" }}>Avbryt</button></div>}
+                    </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#7A7A6E", marginBottom: 8 }}>Endre fylke</div>
                       {!editingFylke ? <div style={{ display: "flex", alignItems: "center", gap: 12 }}><span style={{ fontSize: 14 }}>{profile.city}</span><button onClick={function() { setEditingFylke(true); setEditFylke(profile.city); }} style={{ ...pill(false, false), padding: "4px 14px", fontSize: 11 }}>Endre</button></div> : <div style={{ display: "flex", gap: 8 }}><select value={editFylke} onChange={function(e) { setEditFylke(e.target.value); }} style={{ ...selS, flex: 1 }}><option value="">Velg fylke</option>{FYLKER.map(function(f) { return <option key={f} value={f}>{f}</option>; })}</select><button onClick={updateFylke} style={{ ...pill(false, true), padding: "7px 16px" }}>Lagre</button><button onClick={function() { setEditingFylke(false); }} style={{ ...pill(false, false), padding: "7px 16px" }}>Avbryt</button></div>}
