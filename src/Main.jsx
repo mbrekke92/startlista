@@ -665,17 +665,16 @@ export default function Main({ session }) {
 
             {/* Siden sist */}
             {sinceLast && sinceLast.length > 0 && (
-              <div style={{ background: "#1A1A1A", borderRadius: 14, padding: "16px 20px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ background: "#F5F4F0", borderRadius: 12, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>Siden sist:</span>
                   {sinceLast.map(function(item, i) {
-                    var sep = i > 0 ? <span key={"sep" + i} style={{ color: "rgba(255,255,255,0.2)", fontSize: 10 }}> · </span> : null;
-                    if (item.type === "race") return <span key={i}>{sep}<span onClick={function() { openRace(item.raceId); }} style={{ fontSize: 12, color: "#fff", fontWeight: 500, cursor: "pointer" }}>{item.name} <span style={{ color: "#4ADE80" }}>+{item.count}</span></span></span>;
-                    if (item.type === "fylke") return <span key={i}>{sep}<span style={{ fontSize: 12, color: "#fff", fontWeight: 500 }}><span style={{ color: "#4ADE80" }}>+{item.count}</span> fra {item.fylke}</span></span>;
+                    var sep = i > 0 ? <span key={"sep" + i} style={{ color: "#D4D3CC", fontSize: 10 }}> · </span> : null;
+                    if (item.type === "race") return <span key={i}>{sep}<span onClick={function() { openRace(item.raceId); }} style={{ fontSize: 12, color: "#5A5A52", fontWeight: 500, cursor: "pointer" }}>{item.name} <span style={{ color: "#2D5A3D", fontWeight: 700 }}>+{item.count}</span></span></span>;
+                    if (item.type === "fylke") return <span key={i}>{sep}<span style={{ fontSize: 12, color: "#5A5A52", fontWeight: 500 }}><span style={{ color: "#2D5A3D", fontWeight: 700 }}>+{item.count}</span> nye løpere fra {item.fylke}</span></span>;
                     return null;
                   })}
                 </div>
-                <span onClick={function() { setSinceLast(null); }} style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", cursor: "pointer", marginLeft: 12, flexShrink: 0 }}>✕</span>
+                <span onClick={function() { setSinceLast(null); }} style={{ fontSize: 14, color: "#C4C3BB", cursor: "pointer", marginLeft: 12, flexShrink: 0 }}>✕</span>
               </div>
             )}
 
