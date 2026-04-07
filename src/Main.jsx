@@ -198,6 +198,7 @@ export default function Main({ session }) {
   const [editLastName, setEditLastName] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [sinceLast, setSinceLast] = useState(null);
   const carouselRef = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -234,9 +235,39 @@ export default function Main({ session }) {
       setProfile(p);
       setProfiles(profilesRes.data || []);
       setRaces(racesRes.data || []);
-      setEntries(entriesRes.data || []);
+      var allEntries = entriesRes.data || [];
+      setEntries(allEntries);
       setFollows((followsRes.data || []).map(function(f) { return f.following_id; }));
       if (p && !FYLKER.includes(p.city)) setNeedsFylke(true);
+
+      // Compute "since last" data
+      if (p && p.last_seen) {
+        var lastSeen = new Date(p.last_seen);
+        var now = new Date();
+        var hoursSince = (now - lastSeen) / (1000 * 60 * 60);
+        if (hoursSince >= 24) {
+          var allRaces = racesRes.data || [];
+          var todayStr = now.toISOString().split("T")[0];
+          var myRaceIds = allEntries.filter(function(e) { return e.user_id === userId; }).map(function(e) { return e.race_id; });
+          var sinceData = [];
+          // New entries on races I'm signed up for
+          myRaceIds.forEach(function(raceId) {
+            var race = allRaces.find(function(r) { return r.id === raceId; });
+            if (!race || race.date < todayStr) return;
+            var newOnRace = allEntries.filter(function(e) { return e.race_id === raceId && e.user_id !== userId && e.created_at && new Date(e.created_at) > lastSeen; }).length;
+            if (newOnRace > 0) sinceData.push({ type: "race", name: race.name, count: newOnRace, raceId: raceId });
+          });
+          // New profiles from my county
+          var allProfiles = profilesRes.data || [];
+          var newFromFylke = allProfiles.filter(function(pr) { return pr.id !== userId && pr.city === p.city && pr.created_at && new Date(pr.created_at) > lastSeen; }).length;
+          if (newFromFylke > 0) sinceData.push({ type: "fylke", count: newFromFylke, fylke: p.city });
+          if (sinceData.length > 0) setSinceLast(sinceData);
+        }
+      }
+
+      // Update last_seen
+      await supabase.from("profiles").update({ last_seen: new Date().toISOString() }).eq("id", userId);
+
       setLoading(false);
     };
     load();
@@ -631,6 +662,22 @@ export default function Main({ session }) {
               <input type="text" placeholder="Søk etter løpere eller løp..." value={globalSearch} onChange={function(e) { setGlobalSearch(e.target.value); }} style={iS} />
               <SearchDropdown search={globalSearch} setSearch={setGlobalSearch} onProfile={openProfile} onRace={openRace} />
             </div>
+
+            {/* Siden sist */}
+            {sinceLast && sinceLast.length > 0 && (
+              <div style={{ background: "#1A1A1A", borderRadius: 14, padding: "16px 20px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>Siden sist:</span>
+                  {sinceLast.map(function(item, i) {
+                    var sep = i > 0 ? <span key={"sep" + i} style={{ color: "rgba(255,255,255,0.2)", fontSize: 10 }}> · </span> : null;
+                    if (item.type === "race") return <span key={i}>{sep}<span onClick={function() { openRace(item.raceId); }} style={{ fontSize: 12, color: "#fff", fontWeight: 500, cursor: "pointer" }}>{item.name} <span style={{ color: "#4ADE80" }}>+{item.count}</span></span></span>;
+                    if (item.type === "fylke") return <span key={i}>{sep}<span style={{ fontSize: 12, color: "#fff", fontWeight: 500 }}><span style={{ color: "#4ADE80" }}>+{item.count}</span> fra {item.fylke}</span></span>;
+                    return null;
+                  })}
+                </div>
+                <span onClick={function() { setSinceLast(null); }} style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", cursor: "pointer", marginLeft: 12, flexShrink: 0 }}>✕</span>
+              </div>
+            )}
 
             {/* Hero */}
             {(function() {
