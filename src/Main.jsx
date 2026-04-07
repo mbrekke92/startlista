@@ -279,8 +279,8 @@ export default function Main({ session }) {
     } else {
       await supabase.from("follows").insert({ follower_id: userId, following_id: tid });
       setFollows(function(prev) { return [...prev, tid]; });
-      setFollowMsg("Du følger nå " + targetName);
-      setTimeout(function() { setFollowMsg(""); }, 2000);
+      setFollowMsg({ text: "Du følger nå " + targetName, profileId: tid });
+      setTimeout(function() { setFollowMsg(""); }, 3000);
     }
   };
 
@@ -606,13 +606,17 @@ export default function Main({ session }) {
       </header>
 
       <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onClick={clearSearch} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
-        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"}</style>
+        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @media(max-width:640px){.carousel-arrows{display:none !important}}"}</style>
 
         {/* ═══ LØP ═══ */}
         {view === "races" && (
           <div style={{ padding: "24px 0 60px" }}>
             <div style={{ textAlign: "center", padding: "32px 0 24px" }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.8px", marginBottom: 8 }}>Velkommen til startlista</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.8px", marginBottom: 8 }}>{(function() {
+                var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
+                if (hasRaces || followingIds.length > 0) return "Hei, " + profile.first_name;
+                return "Velkommen til startlista";
+              })()}</div>
               <div style={{ fontSize: 15, color: "#9B9B8E", lineHeight: 1.5 }}>{(function() {
                 var hasRaces = myEntries.some(function(e) { return races.find(function(r) { return r.id === e.race_id && r.date >= today; }); });
                 var hasFollowing = followingIds.length > 0;
@@ -647,7 +651,7 @@ export default function Main({ session }) {
                             <div key={item.race.id} onClick={function() { if (!already) addRaceToMyList(item.race.id); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: already ? "#F8F8F5" : "#FAFAF7", borderRadius: 12, cursor: already ? "default" : "pointer", border: "1px solid #EDECE6" }}>
                               <div>
                                 <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.2px", color: already ? "#9B9B8E" : "#1A1A1A" }}>{item.race.name}</div>
-                                <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)}</div>
+                                <div style={{ fontSize: 11, color: "#9B9B8E" }}>{raceLocation(item.race)} · {formatDate(item.race.date)} · {item.count} påmeldt</div>
                               </div>
                               {already ? (
                                 <span style={{ fontSize: 11, color: "#2D5A3D", fontWeight: 500 }}>✓</span>
@@ -752,7 +756,7 @@ export default function Main({ session }) {
                 <div style={{ marginTop: 40 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", margin: 0 }}>Forslag til løp</h2>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div className="carousel-arrows" style={{ display: "flex", gap: 8 }}>
                       <button onClick={function() { scrollCarousel(-1); }} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid #E2E0D8", background: "#fff", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#9B9B8E" }}>‹</button>
                       <button onClick={function() { scrollCarousel(1); }} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid #E2E0D8", background: "#fff", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#9B9B8E" }}>›</button>
                     </div>
@@ -802,6 +806,10 @@ export default function Main({ session }) {
                 </div>
               );
             })()}
+
+            <div style={{ textAlign: "center", marginTop: 40, paddingBottom: 8 }}>
+              <span onClick={function() { var url = "https://startlista.no"; var text = "Sjekk startlista.no — se hvem som skal løpe samme løp som deg, og finn noen med samme målsetning."; if (navigator.share) { navigator.share({ title: "startlista", text: text, url: url }); } else { navigator.clipboard.writeText(text + " " + url); alert("Tekst kopiert!"); } }} style={{ fontSize: 13, color: "#2D5A3D", cursor: "pointer", fontWeight: 600, padding: "10px 24px", borderRadius: 22, border: "1px solid #2D5A3D", display: "inline-block" }}>Inviter en løpevenn</span>
+            </div>
           </div>
         )}
 
@@ -1135,6 +1143,11 @@ export default function Main({ session }) {
               return (
                 <div style={{ marginTop: 36 }}>
                   <h2 style={sT}>Gjennomført</h2>
+                  {(function() {
+                    var missing = completed.filter(function(e) { return !e.result; }).length;
+                    if (!isMe || missing === 0) return null;
+                    return <div style={{ fontSize: 12, color: "#9B9B8E", marginBottom: 12 }}>{missing} {missing === 1 ? "løp" : "løp"} mangler sluttid</div>;
+                  })()}
                   {completed.map(function(entry) {
                     var race = races.find(function(r) { return r.id === entry.race_id; });
                     if (!race) return null;
@@ -1147,7 +1160,7 @@ export default function Main({ session }) {
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {editingResultId !== entry.id && entry.result && (entry.result === "DNS" || entry.result === "DNF" ? <span style={{ fontSize: 12, fontWeight: 600, color: "#C53030", background: "#FFF5F5", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span> : <span style={{ fontSize: 13, fontWeight: 600, color: "#2D5A3D", background: "#EFF5F0", padding: "4px 12px", borderRadius: 12 }}>{entry.result}</span>)}
-                            {editingResultId !== entry.id && !entry.result && isMe && <span onClick={function() { startEditResult(entry); }} style={{ fontSize: 11, color: "#9B9B8E", cursor: "pointer" }}>+ sluttid</span>}
+                            {editingResultId !== entry.id && !entry.result && isMe && <span onClick={function() { startEditResult(entry); }} style={{ fontSize: 11, color: "#fff", background: "#2D5A3D", padding: "4px 12px", borderRadius: 12, cursor: "pointer", fontWeight: 500 }}>+ sluttid</span>}
                             {!isMe && !entry.result && <span style={{ fontSize: 11, color: "#C4C3BB" }}>✓</span>}
                           </div>
                         </div>
@@ -1390,7 +1403,7 @@ export default function Main({ session }) {
         )}
       </main>
 
-      {followMsg && <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#2D5A3D", color: "#fff", fontSize: 13, fontWeight: 500, padding: "10px 24px", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 200, fontFamily: "'DM Sans', sans-serif", animation: "fadeIn 0.3s ease" }}>{followMsg}</div>}
+      {followMsg && <div onClick={function() { if (followMsg.profileId) { var p = profiles.find(function(pr) { return pr.id === followMsg.profileId; }); if (p) { openProfile(p); setFollowMsg(""); } } }} style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#2D5A3D", color: "#fff", fontSize: 13, fontWeight: 500, padding: "10px 24px", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 200, fontFamily: "'DM Sans', sans-serif", animation: "fadeIn 0.3s ease", cursor: "pointer" }}>{followMsg.text} <span style={{ opacity: 0.7, fontSize: 11 }}>— se løpene</span></div>}
       {addRaceMsg && <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#2D5A3D", color: "#fff", fontSize: 13, fontWeight: 500, padding: "10px 24px", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 200, fontFamily: "'DM Sans', sans-serif", animation: "fadeIn 0.3s ease", textAlign: "center", maxWidth: "90%" }}>{addRaceMsg}</div>}
 
       <footer style={{ padding: "24px", textAlign: "center", fontSize: 11, color: "#C4C3BB", borderTop: "1px solid #EDECE6" }}>
