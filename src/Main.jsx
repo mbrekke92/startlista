@@ -273,21 +273,9 @@ export default function Main({ session }) {
     load();
   }, [userId]);
 
-  // Scroll reveal observer
-  useEffect(function() {
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          var delay = entry.target.getAttribute("data-delay") || 0;
-          setTimeout(function() { entry.target.classList.add("visible"); }, Number(delay));
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.01, rootMargin: "50px 0px 0px 0px" });
-    var elements = document.querySelectorAll(".scroll-reveal");
-    elements.forEach(function(el) { observer.observe(el); });
-    return function() { observer.disconnect(); };
-  });
+  // Animate elements on mount
+  const [mounted, setMounted] = useState(false);
+  useEffect(function() { requestAnimationFrame(function() { requestAnimationFrame(function() { setMounted(true); }); }); }, [fadeKey]);
 
   if (loading || !profile) {
     return (
@@ -653,7 +641,7 @@ export default function Main({ session }) {
       </header>
 
       <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onClick={clearSearch} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
-        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes countPulse{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}} @media(max-width:640px){.carousel-arrows{display:none !important}} .scroll-reveal{opacity:0.35;transform:translateY(4px);transition:opacity 1.2s cubic-bezier(0.16,1,0.3,1),transform 1.2s cubic-bezier(0.16,1,0.3,1)}.scroll-reveal.visible{opacity:1;transform:translateY(0)} .race-item{transition:background 0.2s ease} .race-item:active{background:rgba(0,0,0,0.015)} .hero-count{animation:countPulse 1.4s cubic-bezier(0.16,1,0.3,1) forwards}"}</style>
+        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes revealIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:translate3d(0,0,0)}} @keyframes countPulse{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}} @media(max-width:640px){.carousel-arrows{display:none !important}} .sr{opacity:0;transform:translate3d(0,6px,0);will-change:opacity,transform} .sr.m{animation:revealIn 0.8s cubic-bezier(0.22,1,0.36,1) forwards} .race-item{transition:background 0.2s ease} .race-item:active{background:rgba(0,0,0,0.015)} .hero-count{animation:countPulse 1.4s cubic-bezier(0.22,1,0.36,1) forwards}"}</style>
 
         {/* ═══ LØP ═══ */}
         {view === "races" && (
@@ -767,7 +755,7 @@ export default function Main({ session }) {
                   <div>{visible.map(function(race, idx) {
                     var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
-                      <div key={race.id} className="scroll-reveal race-item" data-delay={idx * 100} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div key={race.id} className={"sr race-item" + (mounted ? " m" : "")} onClick={function() { openRace(race.id); }} style={{ animationDelay: (idx * 0.08) + "s", padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, letterSpacing: "-0.2px" }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>{ps.length > 0 && <AvStack participants={ps} />}<span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span></div>
                       </div>
@@ -787,11 +775,11 @@ export default function Main({ session }) {
               }).filter(function(r) { return r.total >= 2; }).sort(function(a, b) { return b.total - a.total; }).slice(0, 3);
               if (!ranked.length) return null;
               return (
-                <div className="scroll-reveal" style={{ marginTop: 40 }}>
+                <div className={"sr" + (mounted ? " m" : "")} style={{ marginTop: 40 }}>
                   <h2 style={sT}>Populært nå</h2>
                   {ranked.map(function(item, i) {
                     return (
-                      <div key={item.race.id} className="scroll-reveal race-item" data-delay={i * 120} onClick={function() { openRace(item.race.id); }} style={{ padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div key={item.race.id} className={"sr race-item" + (mounted ? " m" : "")} onClick={function() { openRace(item.race.id); }} style={{ animationDelay: (i * 0.1) + "s", padding: "14px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                           <div style={{ width: 32, height: 32, borderRadius: 10, background: i === 0 ? "#9A7B4F" : i === 1 ? "#6B7280" : "#8B6914", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
                           <div>
@@ -815,7 +803,7 @@ export default function Main({ session }) {
               var sug = getRaceSuggestions();
               if (!sug.length) return null;
               return (
-                <div className="scroll-reveal" style={{ marginTop: 40 }}>
+                <div className={"sr" + (mounted ? " m" : "")} style={{ marginTop: 40 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", margin: 0 }}>Forslag til løp</h2>
                     <div className="carousel-arrows" style={{ display: "flex", gap: 8 }}>
@@ -850,12 +838,12 @@ export default function Main({ session }) {
               var other = races.filter(function(r) { return r.date >= today && !myIds.includes(r.id); }).slice(0, 6);
               if (!other.length) return null;
               return (
-                <div className="scroll-reveal" style={{ marginTop: 40 }}>
+                <div className={"sr" + (mounted ? " m" : "")} style={{ marginTop: 40 }}>
                   <h2 style={sT}>Kommende løp</h2>
                   {other.map(function(race, idx) {
                     var ps = entries.filter(function(e) { return e.race_id === race.id && (e.user_id === userId || followingIds.includes(e.user_id)); }).map(function(e) { return profiles.find(function(p) { return p.id === e.user_id; }); }).filter(Boolean);
                     return (
-                      <div key={race.id} className="scroll-reveal race-item" data-delay={idx * 100} onClick={function() { openRace(race.id); }} style={{ padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div key={race.id} className={"sr race-item" + (mounted ? " m" : "")} onClick={function() { openRace(race.id); }} style={{ animationDelay: (idx * 0.08) + "s", padding: "16px 0", borderBottom: "1px solid #EDECE6", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div><div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{race.name}</div><div style={{ fontSize: 12, color: "#9B9B8E" }}>{raceLocation(race)} · {displayDistance(race.distance)} · {formatDate(race.date)}</div></div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>{ps.length > 0 && <AvStack participants={ps} />}<span style={{ color: "#D4D3CC", fontSize: 16 }}>›</span></div>
                       </div>
@@ -943,7 +931,7 @@ export default function Main({ session }) {
               </div>
 
               {/* Stats boxes */}
-              <div className="scroll-reveal" style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+              <div className={"sr" + (mounted ? " m" : "")} style={{ display: "flex", gap: 10, marginBottom: 18 }}>
                 <div style={{ flex: 1, background: "#fff", border: "1px solid #EDECE6", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
                   <div style={{ fontSize: 24, fontWeight: 800, color: "#2D5A3D", letterSpacing: "-0.5px" }}>{entries.filter(function(e) { return e.user_id === selectedProfile.id && races.find(function(r) { return r.id === e.race_id; }) && races.find(function(r) { return r.id === e.race_id; }).date >= today; }).length}</div>
                   <div style={{ fontSize: 11, color: "#9B9B8E", marginTop: 2 }}>planlagte</div>
