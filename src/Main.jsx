@@ -283,7 +283,7 @@ export default function Main({ session }) {
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.05, rootMargin: "0px 0px -20px 0px" });
+    }, { threshold: 0.01, rootMargin: "50px 0px 0px 0px" });
     var elements = document.querySelectorAll(".scroll-reveal");
     elements.forEach(function(el) { observer.observe(el); });
     return function() { observer.disconnect(); };
@@ -653,7 +653,7 @@ export default function Main({ session }) {
       </header>
 
       <main key={fadeKey} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onClick={clearSearch} style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", animation: "fadeIn 0.35s ease" }}>
-        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes countPulse{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}} @media(max-width:640px){.carousel-arrows{display:none !important}} .scroll-reveal{opacity:0.15;transform:translateY(8px);transition:opacity 1s cubic-bezier(0.16,1,0.3,1),transform 1s cubic-bezier(0.16,1,0.3,1)}.scroll-reveal.visible{opacity:1;transform:translateY(0)} .race-item{transition:background 0.2s ease} .race-item:active{background:rgba(0,0,0,0.015)} .hero-count{animation:countPulse 1.4s cubic-bezier(0.16,1,0.3,1) forwards}"}</style>
+        <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes countPulse{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}} @media(max-width:640px){.carousel-arrows{display:none !important}} .scroll-reveal{opacity:0.35;transform:translateY(4px);transition:opacity 1.2s cubic-bezier(0.16,1,0.3,1),transform 1.2s cubic-bezier(0.16,1,0.3,1)}.scroll-reveal.visible{opacity:1;transform:translateY(0)} .race-item{transition:background 0.2s ease} .race-item:active{background:rgba(0,0,0,0.015)} .hero-count{animation:countPulse 1.4s cubic-bezier(0.16,1,0.3,1) forwards}"}</style>
 
         {/* ═══ LØP ═══ */}
         {view === "races" && (
